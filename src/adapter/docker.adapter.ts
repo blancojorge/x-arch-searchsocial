@@ -63,7 +63,7 @@ function resolveEmpathyEndpoint(endpoint: DockerEndpoints, context: Record<strin
   const endpointHost = (empathyAPIHost as string) || 'localhost:8080'
   const endpointInstance = 'imdb'
   const empathyEndpoints: Record<DockerEndpoints, string> = {
-    search: `http://${endpointHost}/query/${endpointInstance}/search`,
+    search: `http://api.empathy.co/search/v1/query/${endpointInstance}/search`,
     popularSearches: `http://${endpointHost}/query/${endpointInstance}/empathize`,
     recommendations: `http://${endpointHost}/query/${endpointInstance}/topclicked`,
     nextQueries: `https://api.empathy.co/nextqueries/${endpointInstance}`,
