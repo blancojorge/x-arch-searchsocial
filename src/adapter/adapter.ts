@@ -43,33 +43,11 @@ resultSchema.$override<EmpathyDemoPlatformResult, Partial<Result>>({
   images: ({ __images }) => (Array.isArray(__images) ? __images.reverse() : [__images]),
 })
 
-// Disable recommendations
-adapter.recommendations = {
-  endpoint: async () => Promise.resolve({ results: [] }),
-  requestMapper: () => ({}),
-  responseMapper: () => ({ results: [] }),
-}
-
-// Disable related prompts
-adapter.relatedPrompts = {
-  endpoint: async () => Promise.resolve({ results: [] }),
-  requestMapper: () => ({}),
-  responseMapper: () => ({ results: [] }),
-}
-
-// Disable next queries
-adapter.nextQueries = {
-  endpoint: async () => Promise.resolve({ nextQueries: [] }),
-  requestMapper: () => ({}),
-  responseMapper: () => ({ nextQueries: [] }),
-}
-
-// Disable popular searches
-adapter.popularSearches = {
-  endpoint: async () => Promise.resolve({ suggestions: [] }),
-  requestMapper: () => ({}),
-  responseMapper: () => ({ suggestions: [] }),
-}
+// Disable features by removing them from the adapter
+delete adapter.recommendations
+delete adapter.relatedPrompts
+delete adapter.nextQueries
+delete adapter.popularSearches
 
 recommendationsRequestSchema.$override<
   RecommendationsRequest,
