@@ -29,7 +29,7 @@ function getEnv() {
   const env = popFromURLParameters('env')
   const envsDict = {
     live: '',
-    staging: 'staging',
+    staging: '',
     test: 'test',
   }
 
@@ -38,7 +38,7 @@ function getEnv() {
   }
 
   if (!!document.location.host.match(/localhost|\.test\.|\.staging\./)) {
-    return 'staging'
+    return ''
   }
 
   return undefined
