@@ -12,8 +12,12 @@ import type {
 
 import {
   experienceControlsResponseSchema,
+  nextQueriesEndpointAdapter,
   platformAdapter,
+  popularSearchesEndpointAdapter,
+  recommendationsEndpointAdapter,
   recommendationsRequestSchema,
+  relatedPromptsEndpointAdapter,
   resultSchema,
   semanticQueriesRequestSchema,
 } from '@empathyco/x-adapter-platform'
@@ -43,11 +47,30 @@ resultSchema.$override<EmpathyDemoPlatformResult, Partial<Result>>({
   images: ({ __images }) => (Array.isArray(__images) ? __images.reverse() : [__images]),
 })
 
-// Disable features by removing them from the adapter
-delete adapter.recommendations
-delete adapter.relatedPrompts
-delete adapter.nextQueries
-delete adapter.popularSearches
+// Disable features by creating empty endpoint adapters
+adapter.recommendations = recommendationsEndpointAdapter.extends({
+  endpoint: () => '',
+  requestMapper: () => ({}),
+  responseMapper: () => ({ results: [] }),
+})
+
+adapter.relatedPrompts = relatedPromptsEndpointAdapter.extends({
+  endpoint: () => '',
+  requestMapper: () => ({}),
+  responseMapper: () => ({ relatedPrompts: [] }),
+})
+
+adapter.nextQueries = nextQueriesEndpointAdapter.extends({
+  endpoint: () => '',
+  requestMapper: () => ({}),
+  responseMapper: () => ({ nextQueries: [] }),
+})
+
+adapter.popularSearches = popularSearchesEndpointAdapter.extends({
+  endpoint: () => '',
+  requestMapper: () => ({}),
+  responseMapper: () => ({ suggestions: [] }),
+})
 
 recommendationsRequestSchema.$override<
   RecommendationsRequest,
