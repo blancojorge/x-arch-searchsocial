@@ -14,4 +14,10 @@ export default defineConfig({
   preview: {
     port: 8080,
   },
+  base: process.env.NODE_ENV === 'production' ? '/x-archetype/' : '/',
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: true
+  }
 })

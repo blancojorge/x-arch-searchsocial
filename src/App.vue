@@ -91,7 +91,16 @@ export default defineComponent({
       try {
         if (window.wysiwyg) {
           await window.wysiwyg?.requestAuth()
-          window.InterfaceX?.search()
+          if (window.InterfaceX) {
+            window.InterfaceX.search()
+          } else {
+            const checkInterfaceX = setInterval(() => {
+              if (window.InterfaceX) {
+                window.InterfaceX.search()
+                clearInterval(checkInterfaceX)
+              }
+            }, 100)
+          }
           window.wysiwyg?.setContext({ query: payload.query })
         }
       } catch {

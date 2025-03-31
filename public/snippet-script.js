@@ -108,24 +108,29 @@ window.initX = {
 }
 
 window.addEventListener('load', () => {
+  const baseUrl = window.location.hostname === 'localhost' 
+    ? 'http://localhost:8080'
+    : `https://${window.location.hostname}`;
+
   window.wysiwyg?.setConfig({
     auth: {
-      baseUrl: 'https://iam.empathy.co',
+      baseUrl,
       clientId: 'wysiwyg',
     },
     analytics: {
-      baseUrl: 'https://api.staging.empathy.co/statistics/v2',
+      baseUrl: `${baseUrl}/statistics/v2`,
     },
     conversational: {
-      baseUrl: 'https://gplay-rag.internal.test.empathy.co',
+      baseUrl,
     },
     search: {
-      baseUrl: 'https://api.staging.empathy.co/search/v1',
+      baseUrl: `${baseUrl}/search/v1`,
+      mockData: true // Enable mock data for local development
     },
     instance,
     lang,
     audience: 'enterprise',
-    playboardUrl: `https://playboard-platform.staging.empathy.co/${instance}`,
+    playboardUrl: `${baseUrl}/${instance}`,
     appContainerSelector: '.x-root-container',
     searchLayerSelector: '.x',
   })
