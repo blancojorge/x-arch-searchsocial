@@ -61,7 +61,7 @@ type DockerEndpoints = Exclude<keyof XComponentsAdapter, 'tagging'>
 function resolveEmpathyEndpoint(endpoint: DockerEndpoints, context: Record<string, any>): string {
   const { empathyAPIHost } = context
   const endpointHost = (empathyAPIHost as string) || 'localhost:8080'
-  const endpointInstance = 'imdb'
+  const endpointInstance = 'empathy'
   const empathyEndpoints: Record<DockerEndpoints, string> = {
     search: `https://api.empathy.co/search/v1/query/${endpointInstance}/search`,
     popularSearches: `http://${endpointHost}/query/${endpointInstance}/empathize`,
