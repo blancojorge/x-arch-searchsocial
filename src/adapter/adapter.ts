@@ -14,7 +14,6 @@ import {
   experienceControlsResponseSchema,
   platformAdapter,
   recommendationsRequestSchema,
-  relatedPromptsEndpointAdapter,
   resultSchema,
   semanticQueriesRequestSchema,
 } from '@empathyco/x-adapter-platform'
@@ -43,6 +42,34 @@ resultSchema.$override<EmpathyDemoPlatformResult, Partial<Result>>({
   brand: 'brand',
   images: ({ __images }) => (Array.isArray(__images) ? __images.reverse() : [__images]),
 })
+
+// Disable recommendations
+adapter.recommendations = {
+  endpoint: async () => Promise.resolve({ results: [] }),
+  requestMapper: () => ({}),
+  responseMapper: () => ({ results: [] }),
+}
+
+// Disable related prompts
+adapter.relatedPrompts = {
+  endpoint: async () => Promise.resolve({ results: [] }),
+  requestMapper: () => ({}),
+  responseMapper: () => ({ results: [] }),
+}
+
+// Disable next queries
+adapter.nextQueries = {
+  endpoint: async () => Promise.resolve({ nextQueries: [] }),
+  requestMapper: () => ({}),
+  responseMapper: () => ({ nextQueries: [] }),
+}
+
+// Disable popular searches
+adapter.popularSearches = {
+  endpoint: async () => Promise.resolve({ suggestions: [] }),
+  requestMapper: () => ({}),
+  responseMapper: () => ({ suggestions: [] }),
+}
 
 recommendationsRequestSchema.$override<
   RecommendationsRequest,
@@ -75,10 +102,4 @@ experienceControlsResponseSchema.$override<
       resultsPerCarousel: 'controls.semanticQueries.resultsPerCarousels',
     },
   },
-})
-
-adapter.relatedPrompts = relatedPromptsEndpointAdapter.extends({
-  endpoint:
-    'https://api.empathy.co/relatedprompts/mymotivemarketplace?store=Labstore+London&lang=en',
-  requestMapper: ({ query }) => ({ query }),
 })
