@@ -33,9 +33,9 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          VUE_APP_DEVELOPMENT_DOCKER: false
+          VUE_APP_DEVELOPMENT_DOCKER: true
           VUE_APP_INSTANCE: empathy
-          VUE_APP_ENV: local
+          VUE_APP_ENV: production
           VUE_APP_SCOPE: desktop
           VUE_APP_LANG: en
           VUE_APP_UI_LANG: en
@@ -44,6 +44,7 @@ jobs:
           VUE_APP_DOC_DIR: ltr
           VUE_APP_STORE: undefined
           VUE_APP_ISOLATE: false
+
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
