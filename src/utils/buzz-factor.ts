@@ -48,7 +48,7 @@ export function assignBuzzFactorTags(results: Result[], query: string): Result[]
   const resultsCopy = [...results]
 
   // Calculate maximum 10% of the results for all tags combined
-  const maxTaggedProducts = Math.max(1, Math.floor(results.length * 0.1))
+  const maxTaggedProducts = Math.max(2, Math.floor(results.length * 0.1)) // Ensure at least 2 tags
   console.warn(`Maximum tagged products (10%): ${maxTaggedProducts}`)
 
   // We have 3 tag types, each should get approximately 1/3 of the maxTaggedProducts
@@ -94,32 +94,6 @@ export function assignBuzzFactorTags(results: Result[], query: string): Result[]
     categories.push(...collectionsAsCategories)
   }
 
-  // Divide the results into three sections for better distribution
-  const firstThird = Math.floor(results.length * 0.33) // Beginning
-  const secondThird = Math.floor(results.length * 0.67) // End of middle section
-
-  // Calculate how many tags to allocate to each section
-  const firstSectionTags = Math.floor(maxTaggedProducts * 0.3) // 30% at beginning
-  const middleSectionTags = Math.floor(maxTaggedProducts * 0.5) // 50% in middle
-  const lastSectionTags = maxTaggedProducts - firstSectionTags - middleSectionTags // Remaining at end
-  console.warn(
-    `Tag distribution: Beginning: ${firstSectionTags}, Middle: ${middleSectionTags}, End: ${lastSectionTags}`,
-  )
-
-  // Create shuffled copies of each section
-  const firstSection = [...resultsCopy].slice(0, firstThird).sort(() => 0.5 - Math.random())
-  const middleSection = [...resultsCopy]
-    .slice(firstThird, secondThird)
-    .sort(() => 0.5 - Math.random())
-  const lastSection = [...resultsCopy].slice(secondThird).sort(() => 0.5 - Math.random())
-
-  console.warn(
-    `Section sizes: Beginning: ${firstSection.length}, Middle: ${middleSection.length}, End: ${lastSection.length}`,
-  )
-
-  // Track which results are already tagged
-  const taggedResults = new Set<string>()
-
   // Predefined tag groups (each representing an equal share of the 10%)
   const tagGroups = [
     // Always show query-based tags first (if query exists)
@@ -134,14 +108,17 @@ export function assignBuzzFactorTags(results: Result[], query: string): Result[]
     tagGroups.map(g => g.tag),
   )
 
-  // Apply tags to products
-  let totalTagged = 0
-  let firstSectionTagged = 0
-  let middleSectionTagged = 0
-  let lastSectionTagged = 0
+  // Track which results are already tagged
+  const taggedResults = new Set<string>()
+  // Track which tag types have been used in the first 8 results
+  const usedTagTypes = new Set<string>()
 
   // Function to process a result and apply a tag
-  const processResult = (result: Result, groupIndex: number, sectionName: string): boolean => {
+  const processResult = (
+    result: Result,
+    groupIndex: number,
+    isFirstEight: boolean = false,
+  ): boolean => {
     // Skip if already tagged
     if (taggedResults.has(String(result.id))) return false
 
@@ -154,14 +131,21 @@ export function assignBuzzFactorTags(results: Result[], query: string): Result[]
 
     const group = tagGroups[groupIndex]
 
+    // For first 8 results, ensure we don't use the same tag type twice
+    if (isFirstEight) {
+      const tagType = group.useCategory
+        ? 'category'
+        : group.tag.includes('Hype in')
+          ? 'query'
+          : 'general'
+      if (usedTagTypes.has(tagType)) {
+        return false
+      }
+      usedTagTypes.add(tagType)
+    }
+
     // For category-specific tags
     if (group.useCategory && categories.length) {
-      // Debug the product structure
-      console.warn(
-        `Product ${originalResult.id} categories:`,
-        JSON.stringify(originalResult.categories),
-      )
-
       // Get the product's categories, flattening the nested structure
       let productCategoryStrings: string[] = []
 
@@ -169,12 +153,8 @@ export function assignBuzzFactorTags(results: Result[], query: string): Result[]
       const productCategories = originalResult.categories
 
       if (productCategories && Array.isArray(productCategories)) {
-        // Log the categories before processing
-        console.warn(`Raw categories for product ${originalResult.id}:`, productCategories)
-
         productCategories.forEach(category => {
           if (Array.isArray(category)) {
-            // Handle nested array: ["category"], exclude "Default"
             if (
               category.length > 0 &&
               typeof category[0] === 'string' &&
@@ -183,7 +163,6 @@ export function assignBuzzFactorTags(results: Result[], query: string): Result[]
               productCategoryStrings.push(category[0])
             }
           } else if (typeof category === 'string' && category !== 'Default') {
-            // Handle string directly, exclude "Default"
             productCategoryStrings.push(category)
           }
         })
@@ -191,10 +170,6 @@ export function assignBuzzFactorTags(results: Result[], query: string): Result[]
 
       // Filter out empty values
       productCategoryStrings = productCategoryStrings.filter(Boolean)
-      console.warn(
-        `Extracted categories for product ${originalResult.id} (excluding "Default"):`,
-        productCategoryStrings,
-      )
 
       // Try alternative approaches to find categories if none were found
       if (productCategoryStrings.length === 0) {
@@ -202,7 +177,7 @@ export function assignBuzzFactorTags(results: Result[], query: string): Result[]
         if (originalResult.name && typeof originalResult.name === 'string') {
           const nameParts = originalResult.name.split(' ')
           if (nameParts.length > 0 && nameParts[0] !== 'Default') {
-            productCategoryStrings.push(nameParts[0]) // Use first word in name as a category
+            productCategoryStrings.push(nameParts[0])
           }
         }
 
@@ -219,144 +194,75 @@ export function assignBuzzFactorTags(results: Result[], query: string): Result[]
 
       // Skip category tags for this product if it has no valid categories
       if (productCategoryStrings.length === 0) {
-        // Also skip if collection is Default or empty
         if (!originalResult.collection || originalResult.collection === 'Default') {
-          console.warn(
-            `Skipping category tag for product ${originalResult.id} - only has Default category`,
-          )
           return false
         }
-        // If collection is not Default, we'll use it below
       }
 
       if (productCategoryStrings.length > 0) {
-        // Pick a random category from this product's categories
         const randomIndex = Math.floor(Math.random() * productCategoryStrings.length)
         const productCategory = productCategoryStrings[randomIndex]
         if (productCategory) {
           originalResult.buzzFactorTag = `${group.tag} "${productCategory}"`
-          console.warn(
-            `Assigned tag for product ${originalResult.id}: ${originalResult.buzzFactorTag} (${sectionName})`,
-          )
         }
       } else if (originalResult.collection && originalResult.collection !== 'Default') {
-        // Fall back to collection if no categories and collection is not Default
         originalResult.buzzFactorTag = `${group.tag} "${originalResult.collection}"`
-        console.warn(
-          `Used collection for product ${originalResult.id}: ${originalResult.buzzFactorTag} (${sectionName})`,
-        )
+      } else if (categories.length > 0) {
+        const randomCategory = categories[Math.floor(Math.random() * categories.length)]
+        originalResult.buzzFactorTag = `${group.tag} "${randomCategory}"`
       } else {
-        // Pick a random category from the pool if the product has no valid categories
-        if (categories.length > 0) {
-          const randomIndex = Math.floor(Math.random() * categories.length)
-          const randomCategory = categories[randomIndex]
-          if (randomCategory && randomCategory !== 'Default') {
-            originalResult.buzzFactorTag = `${group.tag} "${randomCategory}"`
-            console.warn(
-              `Used random category for product ${originalResult.id}: ${originalResult.buzzFactorTag} (${sectionName})`,
-            )
-          } else {
-            // Skip category tag for this product if no valid category is found
-            console.warn(`No valid category found for product ${originalResult.id}, skipping tag`)
-            return false
-          }
-        } else {
-          console.warn(`No categories available for product ${originalResult.id}, skipping tag`)
-          return false
-        }
+        return false
       }
     } else {
       // For non-category tags
       originalResult.buzzFactorTag = group.tag
-      console.warn(
-        `Assigned non-category tag for product ${originalResult.id}: ${group.tag} (${sectionName})`,
-      )
     }
 
-    // Mark as tagged
-    taggedResults.add(String(result.id))
+    // Mark this result as tagged
+    taggedResults.add(String(originalResult.id))
     return true
   }
 
-  // Process each tag group
-  for (let groupIndex = 0; groupIndex < tagGroups.length; groupIndex++) {
-    const group = tagGroups[groupIndex]
-    if (!group) continue
-
-    console.warn(`Processing group: ${group.tag}`)
-
-    let groupTagged = 0
-    const targetCount = Math.min(group.count, maxTaggedProducts - totalTagged)
-
-    if (targetCount <= 0) {
-      console.warn(`Skipping group ${group.tag} - reached max tags`)
-      continue
-    }
-
-    // Calculate tag distribution for this group
-    const groupFirstSectionTags = Math.floor(targetCount * 0.3) // 30% at beginning
-    const groupMiddleSectionTags = Math.floor(targetCount * 0.5) // 50% in middle
-
-    // First section - beginning of results
-    for (
-      let i = 0;
-      i < firstSection.length &&
-      firstSectionTagged < firstSectionTags &&
-      groupTagged < groupFirstSectionTags;
-      i++
-    ) {
-      if (processResult(firstSection[i], groupIndex, 'beginning')) {
-        groupTagged++
-        firstSectionTagged++
-        totalTagged++
+  // First, ensure we have at least one tag in the first 4 results
+  const firstFourResults = resultsCopy.slice(0, 4)
+  let firstFourTagged = false
+  for (let i = 0; i < firstFourResults.length && !firstFourTagged; i++) {
+    for (let groupIndex = 0; groupIndex < tagGroups.length; groupIndex++) {
+      if (processResult(firstFourResults[i], groupIndex, true)) {
+        firstFourTagged = true
+        break
       }
     }
+  }
 
-    // Middle section - middle of results
-    for (
-      let i = 0;
-      i < middleSection.length &&
-      middleSectionTagged < middleSectionTags &&
-      groupTagged < groupFirstSectionTags + groupMiddleSectionTags;
-      i++
-    ) {
-      if (processResult(middleSection[i], groupIndex, 'middle')) {
-        groupTagged++
-        middleSectionTagged++
-        totalTagged++
+  // Then, ensure we have at least two tags in the first 8 results
+  const firstEightResults = resultsCopy.slice(0, 8)
+  let firstEightTagged = 0
+  for (let i = 0; i < firstEightResults.length && firstEightTagged < 2; i++) {
+    for (let groupIndex = 0; groupIndex < tagGroups.length; groupIndex++) {
+      if (processResult(firstEightResults[i], groupIndex, true)) {
+        firstEightTagged++
+        break
       }
     }
+  }
 
-    // Last section - end of results
-    for (
-      let i = 0;
-      i < lastSection.length && lastSectionTagged < lastSectionTags && groupTagged < targetCount;
-      i++
-    ) {
-      if (processResult(lastSection[i], groupIndex, 'end')) {
-        groupTagged++
-        lastSectionTagged++
-        totalTagged++
-      }
-    }
+  // Distribute remaining tags across the rest of the results
+  const remainingResults = resultsCopy.slice(8)
+  let remainingTags = maxTaggedProducts - firstEightTagged
+  let currentGroupIndex = 0
 
-    console.warn(
-      `Added ${groupTagged} tags for group "${group.tag}" (Distribution: ${firstSectionTagged}/${middleSectionTagged}/${lastSectionTagged})`,
-    )
-
-    // If we've reached the maximum total tags, break
-    if (totalTagged >= maxTaggedProducts) {
-      console.warn(`Reached maximum tagged products (${maxTaggedProducts}), breaking`)
-      break
+  for (let i = 0; i < remainingResults.length && remainingTags > 0; i++) {
+    if (processResult(remainingResults[i], currentGroupIndex, false)) {
+      remainingTags--
+      currentGroupIndex = (currentGroupIndex + 1) % tagGroups.length
     }
   }
 
   console.warn(
-    `Total tagged products: ${totalTagged} out of ${results.length} (${((totalTagged / results.length) * 100).toFixed(1)}%)`,
+    `Tag distribution: First 4: ${firstFourTagged ? 1 : 0}, First 8: ${firstEightTagged}, Remaining: ${maxTaggedProducts - firstEightTagged}`,
   )
-  console.warn(
-    `Tag distribution: Beginning: ${firstSectionTagged}/${firstSectionTags}, Middle: ${middleSectionTagged}/${middleSectionTags}, End: ${lastSectionTagged}/${lastSectionTags}`,
-  )
+  console.warn('Used tag types in first 8:', Array.from(usedTagTypes))
 
   return results
 }
