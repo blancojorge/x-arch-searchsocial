@@ -18,7 +18,10 @@ export default defineComponent({
   setup(props) {
     const tagClass = computed(() => {
       if (!props.tag) return ''
-      return props.tag.includes('Bestseller') ? 'bestseller' : 'rising-star'
+      if (props.tag.includes('Hype')) return 'bestseller'
+      if (props.tag.includes('Trending now')) return 'bestseller'
+      if (props.tag.includes('Popular')) return 'bestseller'
+      return ''
     })
 
     onMounted(() => {

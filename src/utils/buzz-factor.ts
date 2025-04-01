@@ -42,13 +42,13 @@ export function assignBuzzFactorTags(results: Result[], query: string): Result[]
   // Make sure we work with the original results for proper reactivity
   const resultsCopy = [...results]
 
-  // Calculate maximum 30% of the results for all tags combined
-  const maxTaggedProducts = Math.max(1, Math.floor(results.length * 0.3))
-  console.warn(`Maximum tagged products (30%): ${maxTaggedProducts}`)
+  // Calculate maximum 10% of the results for all tags combined
+  const maxTaggedProducts = Math.max(1, Math.floor(results.length * 0.1))
+  console.warn(`Maximum tagged products (10%): ${maxTaggedProducts}`)
 
-  // We have 6 tag types, each should get approximately 1/6 of the maxTaggedProducts
-  const tagsPerGroup = Math.max(1, Math.floor(maxTaggedProducts / 6))
-  console.warn(`Tags per group (1/6 of max): ${tagsPerGroup}`)
+  // We have 3 tag types, each should get approximately 1/3 of the maxTaggedProducts
+  const tagsPerGroup = Math.max(1, Math.floor(maxTaggedProducts / 3))
+  console.warn(`Tags per group (1/3 of max): ${tagsPerGroup}`)
 
   // Get category names from the results (handling nested array structure correctly)
   const allCategories: string[] = []
@@ -115,20 +115,13 @@ export function assignBuzzFactorTags(results: Result[], query: string): Result[]
   // Track which results are already tagged
   const taggedResults = new Set<string>()
 
-  // Predefined tag groups (each representing an equal share of the 30%)
+  // Predefined tag groups (each representing an equal share of the 10%)
   const tagGroups = [
     // Always show query-based tags first (if query exists)
-    ...(finalQuery.trim()
-      ? [
-          { tag: `Bestseller in "${finalQuery}"`, count: tagsPerGroup },
-          { tag: `Rising star in "${finalQuery}"`, count: tagsPerGroup },
-        ]
-      : []),
+    ...(finalQuery.trim() ? [{ tag: `Hype in "${finalQuery}"`, count: tagsPerGroup }] : []),
     // Then show non-query tags
-    { tag: 'Bestseller', count: tagsPerGroup },
-    { tag: 'Bestseller in', count: tagsPerGroup, useCategory: true },
-    { tag: 'Rising star', count: tagsPerGroup },
-    { tag: 'Rising star in', count: tagsPerGroup, useCategory: true },
+    { tag: 'Trending now', count: tagsPerGroup },
+    { tag: 'Popular in', count: tagsPerGroup, useCategory: true },
   ]
 
   console.warn(
