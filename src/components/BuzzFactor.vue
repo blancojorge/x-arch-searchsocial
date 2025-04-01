@@ -3,7 +3,11 @@
     <div v-if="tag" class="buzz-factor-tag" :class="tagClass" @click.stop.prevent="handleClick">
       {{ tag }}
     </div>
-    <BuzzFactorDialog :is-open="isDialogOpen" @close="closeDialog" />
+    <BuzzFactorDialog
+      :is-open="isDialogOpen"
+      title="Understanding Buzz Factor Tags"
+      @close="closeDialog"
+    />
   </div>
 </template>
 
@@ -24,7 +28,7 @@ export default defineComponent({
   },
   setup(props) {
     const isDialogOpen = ref(false)
-    let parentLink: HTMLAnchorElement | null = null
+    const parentLink = ref<HTMLAnchorElement | null>(null)
 
     const tagClass = computed(() => {
       if (!props.tag) return ''
@@ -41,12 +45,12 @@ export default defineComponent({
       // Find and disable the parent link
       const tag = document.querySelector('.buzz-factor-tag')
       if (tag) {
-        parentLink = tag.closest('a')
-        if (parentLink) {
+        parentLink.value = tag.closest('a')
+        if (parentLink.value) {
           // Store the original href
-          const originalHref = parentLink.getAttribute('href')
-          parentLink.setAttribute('data-original-href', originalHref || '')
-          parentLink.removeAttribute('href')
+          const originalHref = parentLink.value.getAttribute('href')
+          parentLink.value.setAttribute('data-original-href', originalHref || '')
+          parentLink.value.removeAttribute('href')
         }
       }
 
@@ -54,19 +58,17 @@ export default defineComponent({
     }
 
     const closeDialog = () => {
-      // Re-enable the parent link after a small delay
-      if (parentLink) {
-        setTimeout(() => {
-          const originalHref = parentLink?.getAttribute('data-original-href')
-          if (originalHref) {
-            parentLink?.setAttribute('href', originalHref)
-            parentLink?.removeAttribute('data-original-href')
-          }
-          parentLink = null
-        }, 0)
-      }
-
       isDialogOpen.value = false
+
+      // Re-enable the parent link after a short delay
+      if (parentLink.value) {
+        setTimeout(() => {
+          if (parentLink.value) {
+            parentLink.value.style.pointerEvents = 'auto'
+            parentLink.value = null
+          }
+        }, 100)
+      }
     }
 
     return {

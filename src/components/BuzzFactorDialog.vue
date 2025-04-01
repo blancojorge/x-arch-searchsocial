@@ -1,50 +1,52 @@
 <template>
-  <div v-if="isOpen" class="dialog-overlay" @click="closeDialog">
-    <div class="dialog-content" @click.stop>
-      <button class="close-button" @click="closeDialog">&times;</button>
+  <teleport to="body">
+    <div v-show="isOpen" class="dialog-overlay" @click="closeDialog">
+      <div class="dialog-content" @click.stop>
+        <button class="close-button" @click="closeDialog">&times;</button>
 
-      <div class="dialog-header">
-        <h2>{{ title }}</h2>
-      </div>
+        <div class="dialog-header">
+          <h2>{{ title }}</h2>
+        </div>
 
-      <div class="dialog-body">
-        <div class="info-section">
-          <div class="icon-section">
-            <div class="pulse-icon">
-              <span class="material-icons">trending_up</span>
+        <div class="dialog-body">
+          <div class="info-section">
+            <div class="icon-section">
+              <div class="pulse-icon">
+                <span class="material-icons">trending_up</span>
+              </div>
+            </div>
+            <h3>What is Buzz Factor?</h3>
+            <p>
+              Buzz Factor is our smart way of highlighting products that are creating excitement in
+              our community. It shows you what's trending, popular, or generating buzz in different
+              categories.
+            </p>
+          </div>
+
+          <div class="tag-types">
+            <div class="tag-type">
+              <div class="tag bestseller">Hype in "Category"</div>
+              <p>Products that are currently trending in specific categories</p>
+            </div>
+            <div class="tag-type">
+              <div class="tag bestseller">Trending now</div>
+              <p>Products that are gaining popularity across all categories</p>
+            </div>
+            <div class="tag-type">
+              <div class="tag bestseller">Popular in "Category"</div>
+              <p>Most sought-after items in their categories</p>
             </div>
           </div>
-          <h3>What is Buzz Factor?</h3>
-          <p>
-            Buzz Factor is our smart way of highlighting products that are creating excitement in
-            our community. It shows you what's trending, popular, or generating buzz in different
-            categories.
-          </p>
-        </div>
 
-        <div class="tag-types">
-          <div class="tag-type">
-            <div class="tag bestseller">Hype in "Category"</div>
-            <p>Products that are currently trending in specific categories</p>
+          <div class="info-footer">
+            <p>
+              These tags are updated in real-time based on customer interaction and shopping trends.
+            </p>
           </div>
-          <div class="tag-type">
-            <div class="tag bestseller">Trending now</div>
-            <p>Products that are gaining popularity across all categories</p>
-          </div>
-          <div class="tag-type">
-            <div class="tag bestseller">Popular in "Category"</div>
-            <p>Most sought-after items in their categories</p>
-          </div>
-        </div>
-
-        <div class="info-footer">
-          <p>
-            These tags are updated in real-time based on customer interaction and shopping trends.
-          </p>
         </div>
       </div>
     </div>
-  </div>
+  </teleport>
 </template>
 
 <script lang="ts">
@@ -86,7 +88,7 @@ export default defineComponent({
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9999;
+  z-index: 999999;
   backdrop-filter: blur(4px);
 }
 
@@ -100,7 +102,7 @@ export default defineComponent({
   overflow-y: auto;
   position: relative;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
-  z-index: 10000;
+  z-index: 1000000;
 }
 
 .close-button {
