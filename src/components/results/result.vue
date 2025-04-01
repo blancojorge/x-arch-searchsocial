@@ -18,6 +18,8 @@
             <BaseFallbackImage />
           </template>
         </BaseResultImage>
+
+        <BuzzFactor v-if="result.buzzFactorTag" :tag="result.buzzFactorTag" />
       </BaseResultLink>
 
       <div
@@ -68,6 +70,7 @@ import {
 import { MainScrollItem } from '@empathyco/x-components/scroll'
 import { defineComponent } from 'vue'
 import { useDevice } from '../../composables/use-device.composable'
+import BuzzFactor from '../BuzzFactor.vue'
 
 export default defineComponent({
   components: {
@@ -79,14 +82,29 @@ export default defineComponent({
     BaseResultImage,
     BaseResultLink,
     MainScrollItem,
+    BuzzFactor,
   },
   props: {
     result: { type: Object as PropType<Result>, required: true },
     showDescription: { type: Boolean, default: true },
     showAddToCart: { type: Boolean, default: true },
   },
-  setup() {
+  setup(props) {
     const { isDesktopOrGreater } = useDevice()
+
+    if (props.result) {
+      console.warn(
+        'Sample product structure:',
+        JSON.stringify({
+          id: props.result.id,
+          name: props.result.name,
+          categories: props.result.categories,
+          collection: props.result.collection,
+          brand: props.result.brand,
+        }),
+      )
+    }
+
     return {
       isDesktopOrGreater,
       imageAnimation: CrossFade,

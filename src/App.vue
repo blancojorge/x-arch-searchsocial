@@ -34,6 +34,7 @@ import {
 import { useDevice } from './composables/use-device.composable'
 import { isIOS, removeSearchInputFocus } from './composables/use-ios-utils-composable'
 import currencies from './i18n/currencies'
+import { assignBuzzFactorTags } from './utils/buzz-factor'
 import './tailwind/index.css'
 
 export default defineComponent({
@@ -84,6 +85,25 @@ export default defineComponent({
     xBus.on('SearchResponseChanged', false).subscribe((payload: InternalSearchResponse): void => {
       if (payload.spellcheck) {
         window.wysiwyg?.setContext({ spellcheckedQuery: payload.spellcheck })
+      }
+
+      // Add buzz factor tags to results
+      if (payload.results && payload.results.length > 0) {
+        // Get the search query from multiple possible sources
+        const searchQuery = payload.query || payload.request?.query || window.initX?.query || ''
+
+        console.warn(`Adding buzz factor tags for search query: "${searchQuery}"`)
+
+        // Our improved buzz-factor utility now directly modifies the original results
+        assignBuzzFactorTags(payload.results, searchQuery)
+
+        console.warn(
+          'Search results after BF tags:',
+          payload.results.slice(0, 3).map(r => ({ id: r.id, tag: r.buzzFactorTag })),
+        )
+        console.warn(
+          `Tagged ${payload.results.filter(result => result.buzzFactorTag).length} out of ${payload.results.length} products`,
+        )
       }
     })
 
