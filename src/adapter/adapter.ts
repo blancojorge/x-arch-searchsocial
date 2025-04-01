@@ -7,6 +7,7 @@ import type {
   ExperienceControlsResponse,
   RecommendationsRequest,
   Result,
+  ResultRating,
   SemanticQueriesRequest,
 } from '@empathyco/x-types'
 
@@ -30,6 +31,7 @@ interface EmpathyDemoPlatformResult extends PlatformResult {
   description: string
   collection: string
   brand: string
+  rating: number
 }
 
 declare module '@empathyco/x-types' {
@@ -37,6 +39,7 @@ declare module '@empathyco/x-types' {
     collection: string
     description: string
     brand: string
+    rating: ResultRating
   }
 }
 
@@ -45,6 +48,7 @@ resultSchema.$override<EmpathyDemoPlatformResult, Partial<Result>>({
   collection: 'collection',
   brand: 'brand',
   images: ({ __images }) => (Array.isArray(__images) ? __images.reverse() : [__images]),
+  rating: ({ rating }) => ({ value: rating }),
 })
 
 // Disable features by creating empty endpoint adapters

@@ -43,12 +43,15 @@
         <span class="x-text2">{{ result.collection }}</span>
         <span class="x-text2 x-text-lead-50">{{ result.brand }}</span>
       </template>
-      <div class="x-flex x-flex-wrap x-gap-8">
-        <BaseResultCurrentPrice :result="result" class="x-text2 x-text2-lg x-font-bold" />
-        <BaseResultPreviousPrice
-          :result="result"
-          class="x-text2 x-leading-[1.7] x-text-neutral-75 x-line-through"
-        />
+      <div class="x-flex x-flex-col x-gap-2">
+        <div class="x-flex x-flex-wrap x-gap-8">
+          <BaseResultCurrentPrice :result="result" class="x-text2 x-text2-lg x-font-bold" />
+          <BaseResultPreviousPrice
+            :result="result"
+            class="x-text2 x-leading-[1.7] x-text-neutral-75 x-line-through"
+          />
+        </div>
+        <StarRating v-if="result.rating" :rating="result.rating.value" />
       </div>
     </BaseResultLink>
   </MainScrollItem>
@@ -71,6 +74,7 @@ import { MainScrollItem } from '@empathyco/x-components/scroll'
 import { defineComponent } from 'vue'
 import { useDevice } from '../../composables/use-device.composable'
 import BuzzFactor from '../BuzzFactor.vue'
+import StarRating from '../StarRating.vue'
 
 export default defineComponent({
   components: {
@@ -83,6 +87,7 @@ export default defineComponent({
     BaseResultLink,
     MainScrollItem,
     BuzzFactor,
+    StarRating,
   },
   props: {
     result: { type: Object as PropType<Result>, required: true },

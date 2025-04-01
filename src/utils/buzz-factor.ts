@@ -1,7 +1,10 @@
-import type { Result } from '@empathyco/x-types'
+import type { Result, ResultRating } from '@empathyco/x-types'
+
+// Import product engagement metrics
 
 export interface ResultWithBuzzFactor extends Result {
   buzzFactorTag?: string
+  rating?: ResultRating
 }
 
 interface StoredTag {
@@ -191,7 +194,7 @@ export function assignBuzzFactorTags(results: Result[], query: string): Result[]
   const first50Results = resultsCopy.slice(0, 50)
   const remainingResults = resultsCopy.slice(50)
 
-  // Phase 1: Apply stored tags to first 8 results
+  // Phase 1: Apply stored tags and ratings to first 8 results
   for (const result of firstEightResults) {
     const productId = String(result.id)
     const storedTags = getAllStoredTags(productId)
@@ -215,6 +218,8 @@ export function assignBuzzFactorTags(results: Result[], query: string): Result[]
         break
       }
     }
+
+    // Rating is already mapped in the adapter
   }
 
   // Phase 2: Ensure minimum tags in first 4 and 8
@@ -252,7 +257,7 @@ export function assignBuzzFactorTags(results: Result[], query: string): Result[]
     )
   }
 
-  // Phase 3: Apply stored tags to remaining results
+  // Phase 3: Apply stored tags and ratings to remaining results
   for (const result of remainingResults) {
     if (taggedResults.size >= maxTaggedProducts) break
 
@@ -271,6 +276,8 @@ export function assignBuzzFactorTags(results: Result[], query: string): Result[]
         break
       }
     }
+
+    // Rating is already mapped in the adapter
   }
 
   // Phase 4: Ensure 20% tags in first 50
