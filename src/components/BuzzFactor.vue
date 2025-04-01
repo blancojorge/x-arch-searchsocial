@@ -6,6 +6,9 @@
       :class="tagClass"
       @click.stop.prevent
     >
+      <div class="pulse-icon">
+        <span class="material-icons">trending_up</span>
+      </div>
       {{ tag }}
     </BaseIdModalOpen>
   </div>
@@ -89,5 +92,29 @@ export default defineComponent({
 
 .buzz-factor-tag--low {
   background-color: #2a9d8f;
+}
+
+.pulse-icon {
+  width: 16px;
+  height: 16px;
+
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(243, 241, 241, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(230, 57, 70, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(230, 57, 70, 0);
+  }
 }
 </style>
