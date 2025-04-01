@@ -37,6 +37,12 @@ import currencies from './i18n/currencies'
 import { assignBuzzFactorTags } from './utils/buzz-factor'
 import './tailwind/index.css'
 
+// Add Material Icons font
+const materialIconsLink = document.createElement('link')
+materialIconsLink.rel = 'stylesheet'
+materialIconsLink.href = 'https://fonts.googleapis.com/icon?family=Material+Icons'
+document.head.appendChild(materialIconsLink)
+
 export default defineComponent({
   components: {
     SnippetCallbacks,
