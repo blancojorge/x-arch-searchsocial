@@ -16,23 +16,28 @@ export function assignBuzzFactorTags(results: Result[], query: string): Result[]
   // Debug: Print a sample product's full structure
   if (results.length > 0) {
     const sampleProduct = results[0]
-    console.warn(
-      'Sample product structure:',
-      JSON.stringify({
-        id: sampleProduct.id,
-        name: sampleProduct.name,
-        categories: sampleProduct.categories,
-        collection: sampleProduct.collection,
-        brand: sampleProduct.brand,
-      }),
-    )
+    if (sampleProduct) {
+      console.warn(
+        'Sample product structure:',
+        JSON.stringify({
+          id: sampleProduct.id,
+          name: sampleProduct.name,
+          categories: sampleProduct.categories,
+          collection: sampleProduct.collection,
+          brand: sampleProduct.brand,
+        }),
+      )
+    }
   }
 
   // If query is still empty, try to extract it from the results' tagging info
   let finalQuery = query
-  if (!finalQuery && results.length > 0 && results[0].tagging?.click?.params?.q) {
-    finalQuery = String(results[0].tagging.click.params.q)
-    console.warn(`Query was empty, extracted from tagging: "${finalQuery}"`)
+  if (!finalQuery && results.length > 0) {
+    const firstResult = results[0]
+    if (firstResult?.tagging?.click?.params?.q) {
+      finalQuery = String(firstResult.tagging.click.params.q)
+      console.warn(`Query was empty, extracted from tagging: "${finalQuery}"`)
+    }
   }
 
   console.warn(
@@ -144,25 +149,28 @@ export function assignBuzzFactorTags(results: Result[], query: string): Result[]
     const originalIndex = results.findIndex(r => String(r.id) === String(result.id))
     if (originalIndex === -1) return false
 
+    const originalResult = results[originalIndex]
+    if (!originalResult) return false
+
     const group = tagGroups[groupIndex]
 
     // For category-specific tags
     if (group.useCategory && categories.length) {
       // Debug the product structure
       console.warn(
-        `Product ${results[originalIndex].id} categories:`,
-        JSON.stringify(results[originalIndex].categories),
+        `Product ${originalResult.id} categories:`,
+        JSON.stringify(originalResult.categories),
       )
 
       // Get the product's categories, flattening the nested structure
       let productCategoryStrings: string[] = []
 
       // Extract categories directly from the product's field
-      const productCategories = results[originalIndex].categories
+      const productCategories = originalResult.categories
 
       if (productCategories && Array.isArray(productCategories)) {
         // Log the categories before processing
-        console.warn(`Raw categories for product ${results[originalIndex].id}:`, productCategories)
+        console.warn(`Raw categories for product ${originalResult.id}:`, productCategories)
 
         productCategories.forEach(category => {
           if (Array.isArray(category)) {
@@ -184,22 +192,22 @@ export function assignBuzzFactorTags(results: Result[], query: string): Result[]
       // Filter out empty values
       productCategoryStrings = productCategoryStrings.filter(Boolean)
       console.warn(
-        `Extracted categories for product ${results[originalIndex].id} (excluding "Default"):`,
+        `Extracted categories for product ${originalResult.id} (excluding "Default"):`,
         productCategoryStrings,
       )
 
       // Try alternative approaches to find categories if none were found
       if (productCategoryStrings.length === 0) {
         // Try looking for embedded category information in product name
-        if (typeof results[originalIndex].name === 'string') {
-          const nameParts = results[originalIndex].name.split(' ')
+        if (originalResult.name && typeof originalResult.name === 'string') {
+          const nameParts = originalResult.name.split(' ')
           if (nameParts.length > 0 && nameParts[0] !== 'Default') {
             productCategoryStrings.push(nameParts[0]) // Use first word in name as a category
           }
         }
 
         // Try looking for properties that might contain category information
-        const product = results[originalIndex] as unknown as Record<string, unknown>
+        const product = originalResult as unknown as Record<string, unknown>
         const possibleCategoryFields = ['type', 'group', 'category', 'className']
         for (const field of possibleCategoryFields) {
           const value = product[field]
@@ -207,19 +215,14 @@ export function assignBuzzFactorTags(results: Result[], query: string): Result[]
             productCategoryStrings.push(value)
           }
         }
-
-        console.warn(
-          `Alternative categories found for product ${results[originalIndex].id}:`,
-          productCategoryStrings,
-        )
       }
 
       // Skip category tags for this product if it has no valid categories
       if (productCategoryStrings.length === 0) {
         // Also skip if collection is Default or empty
-        if (results[originalIndex].collection === 'Default' || !results[originalIndex].collection) {
+        if (!originalResult.collection || originalResult.collection === 'Default') {
           console.warn(
-            `Skipping category tag for product ${results[originalIndex].id} - only has Default category`,
+            `Skipping category tag for product ${originalResult.id} - only has Default category`,
           )
           return false
         }
@@ -228,42 +231,45 @@ export function assignBuzzFactorTags(results: Result[], query: string): Result[]
 
       if (productCategoryStrings.length > 0) {
         // Pick a random category from this product's categories
-        const productCategory =
-          productCategoryStrings[Math.floor(Math.random() * productCategoryStrings.length)]
-        results[originalIndex].buzzFactorTag = `${group.tag} "${productCategory}"`
-        console.warn(
-          `Assigned tag for product ${results[originalIndex].id}: ${results[originalIndex].buzzFactorTag} (${sectionName})`,
-        )
-      } else if (
-        results[originalIndex].collection &&
-        results[originalIndex].collection !== 'Default'
-      ) {
+        const randomIndex = Math.floor(Math.random() * productCategoryStrings.length)
+        const productCategory = productCategoryStrings[randomIndex]
+        if (productCategory) {
+          originalResult.buzzFactorTag = `${group.tag} "${productCategory}"`
+          console.warn(
+            `Assigned tag for product ${originalResult.id}: ${originalResult.buzzFactorTag} (${sectionName})`,
+          )
+        }
+      } else if (originalResult.collection && originalResult.collection !== 'Default') {
         // Fall back to collection if no categories and collection is not Default
-        results[originalIndex].buzzFactorTag = `${group.tag} "${results[originalIndex].collection}"`
+        originalResult.buzzFactorTag = `${group.tag} "${originalResult.collection}"`
         console.warn(
-          `Used collection for product ${results[originalIndex].id}: ${results[originalIndex].buzzFactorTag} (${sectionName})`,
+          `Used collection for product ${originalResult.id}: ${originalResult.buzzFactorTag} (${sectionName})`,
         )
       } else {
         // Pick a random category from the pool if the product has no valid categories
-        const randomCategory = categories[Math.floor(Math.random() * categories.length)]
-        if (randomCategory && randomCategory !== 'Default') {
-          results[originalIndex].buzzFactorTag = `${group.tag} "${randomCategory}"`
-          console.warn(
-            `Used random category for product ${results[originalIndex].id}: ${results[originalIndex].buzzFactorTag} (${sectionName})`,
-          )
+        if (categories.length > 0) {
+          const randomIndex = Math.floor(Math.random() * categories.length)
+          const randomCategory = categories[randomIndex]
+          if (randomCategory && randomCategory !== 'Default') {
+            originalResult.buzzFactorTag = `${group.tag} "${randomCategory}"`
+            console.warn(
+              `Used random category for product ${originalResult.id}: ${originalResult.buzzFactorTag} (${sectionName})`,
+            )
+          } else {
+            // Skip category tag for this product if no valid category is found
+            console.warn(`No valid category found for product ${originalResult.id}, skipping tag`)
+            return false
+          }
         } else {
-          // Skip category tag for this product if no valid category is found
-          console.warn(
-            `No valid category found for product ${results[originalIndex].id}, skipping tag`,
-          )
+          console.warn(`No categories available for product ${originalResult.id}, skipping tag`)
           return false
         }
       }
     } else {
       // For non-category tags
-      results[originalIndex].buzzFactorTag = group.tag
+      originalResult.buzzFactorTag = group.tag
       console.warn(
-        `Assigned non-category tag for product ${results[originalIndex].id}: ${group.tag} (${sectionName})`,
+        `Assigned non-category tag for product ${originalResult.id}: ${group.tag} (${sectionName})`,
       )
     }
 
@@ -275,6 +281,8 @@ export function assignBuzzFactorTags(results: Result[], query: string): Result[]
   // Process each tag group
   for (let groupIndex = 0; groupIndex < tagGroups.length; groupIndex++) {
     const group = tagGroups[groupIndex]
+    if (!group) continue
+
     console.warn(`Processing group: ${group.tag}`)
 
     let groupTagged = 0

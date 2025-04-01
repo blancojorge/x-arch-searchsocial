@@ -52,54 +52,69 @@ export default defineComponent({
     const xBus = useXBus()
     const appInstance = getCurrentInstance()
     const { deviceName } = useDevice()
-    const snippetConfig = inject<SnippetConfig>('snippetConfig')!
+    const snippetConfig = inject<SnippetConfig>('snippetConfig')
+    if (!snippetConfig) {
+      throw new Error('snippetConfig is required')
+    }
     const isOpen = ref(false)
 
     const openXEvents = ['UserOpenXProgrammatically', 'UserClickedOpenX']
 
     const open = (): void => {
       isOpen.value = true
-      window.wysiwyg?.open()
+      if (window.wysiwyg) {
+        window.wysiwyg.open()
+      }
     }
 
     openXEvents.forEach(event => xBus.on(event as XEvent, false).subscribe(open))
 
     const close = (): void => {
-      window.wysiwyg?.close()
+      if (window.wysiwyg) {
+        window.wysiwyg.close()
+      }
     }
 
     xBus.on('UserClickedCloseX', false).subscribe(close)
 
     xBus.on('UserAcceptedAQuery', false).subscribe(async (query): Promise<void> => {
       if (/^::\s*login/.test(query)) {
-        await window.wysiwyg?.goToLogin()
+        if (window.wysiwyg) {
+          await window.wysiwyg.goToLogin()
+        }
       }
     })
 
     xBus
       .on('SearchRequestChanged', false)
       .subscribe((payload: InternalSearchRequest | null): void => {
-        window.wysiwyg?.setContext({ query: payload?.query, spellcheckedQuery: undefined })
+        if (window.wysiwyg) {
+          window.wysiwyg.setContext({ query: payload?.query, spellcheckedQuery: undefined })
+        }
       })
 
     xBus.on('SearchResponseChanged', false).subscribe((payload: InternalSearchResponse): void => {
-      if (payload.spellcheck) {
-        window.wysiwyg?.setContext({ spellcheckedQuery: payload.spellcheck })
+      if (payload.spellcheck && window.wysiwyg) {
+        window.wysiwyg.setContext({ spellcheckedQuery: payload.spellcheck })
       }
 
       // Add buzz factor tags to results
       if (payload.results && payload.results.length > 0) {
         // Get the search query from multiple possible sources
         const searchQuery =
-          (payload as any).query ||
+          (payload as InternalSearchResponse & { query?: string }).query ||
           (payload.request as InternalSearchRequest)?.query ||
-          (typeof window.initX === 'function' ? window.initX().query : window.initX?.query) ||
+          (window.initX
+            ? typeof window.initX === 'function'
+              ? window.initX().query
+              : window.initX.query
+            : '') ||
           ''
 
         console.warn(`Adding buzz factor tags for search query: "${searchQuery}"`)
 
-        // Our improved buzz-factor utility now directly modifies the original results
-        assignBuzzFactorTags(payload.results, searchQuery)
+        // Add buzz factor tags to the results
+        payload.results = assignBuzzFactorTags(payload.results, String(searchQuery))
 
         console.warn(
           'Search results after BF tags:',
@@ -114,18 +129,18 @@ export default defineComponent({
     xBus.on('ParamsLoadedFromUrl', false).subscribe(async (payload: UrlParams): Promise<void> => {
       try {
         if (window.wysiwyg) {
-          await window.wysiwyg?.requestAuth()
-          if (window.InterfaceX) {
+          await window.wysiwyg.requestAuth()
+          if (window.InterfaceX && typeof window.InterfaceX.search === 'function') {
             window.InterfaceX.search()
           } else {
             const checkInterfaceX = setInterval(() => {
-              if (window.InterfaceX) {
+              if (window.InterfaceX && typeof window.InterfaceX.search === 'function') {
                 window.InterfaceX.search()
                 clearInterval(checkInterfaceX)
               }
             }, 100)
           }
-          window.wysiwyg?.setContext({ query: payload.query })
+          window.wysiwyg.setContext({ query: payload.query })
         }
       } catch {
         // No error handling
@@ -140,7 +155,10 @@ export default defineComponent({
       )
     })
 
-    const currencyFormat = computed(() => currencies[snippetConfig.currency!])
+    const currencyFormat = computed(() => {
+      const currency = snippetConfig.currency
+      return currency ? currencies[currency] : currencies.EUR // Fallback to EUR if currency is not set
+    })
     provide<string>('currencyFormat', currencyFormat.value)
 
     const queriesPreviewInfo = computed(() => snippetConfig.queriesPreview ?? [])
