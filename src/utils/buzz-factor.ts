@@ -4,279 +4,307 @@ export interface ResultWithBuzzFactor extends Result {
   buzzFactorTag?: string
 }
 
-/**
- * Assigns Buzz Factor tags to a percentage of search results
- * @param results - The search results to process
- * @param query - The current search query
- * @returns The results with added buzz factor tags
- */
-export function assignBuzzFactorTags(results: Result[], query: string): Result[] {
-  if (!results.length) return results
+interface StoredTag {
+  tag: string
+  query?: string
+  timestamp?: number
+}
 
-  // Debug: Print a sample product's full structure
-  if (results.length > 0) {
-    const sampleProduct = results[0]
-    if (sampleProduct) {
-      console.warn(
-        'Sample product structure:',
-        JSON.stringify({
-          id: sampleProduct.id,
-          name: sampleProduct.name,
-          categories: sampleProduct.categories,
-          collection: sampleProduct.collection,
-          brand: sampleProduct.brand,
-        }),
-      )
+interface TagStorage {
+  [productId: string]: StoredTag
+}
+
+const STORAGE_KEYS = {
+  query: 'buzz-factor-query-tags',
+  general: 'buzz-factor-general-tags',
+  category: 'buzz-factor-category-tags',
+} as const
+
+// Storage management functions
+function saveTag(
+  productId: string,
+  tag: string,
+  type: 'query' | 'general' | 'category',
+  query?: string,
+): void {
+  try {
+    const key = STORAGE_KEYS[type]
+    const storage = JSON.parse(localStorage.getItem(key) || '{}') as TagStorage
+    storage[productId] = {
+      tag,
+      query,
+      timestamp: Date.now(),
     }
+    localStorage.setItem(key, JSON.stringify(storage))
+  } catch (error) {
+    console.error('Error saving buzz factor tag:', error)
   }
+}
 
-  // If query is still empty, try to extract it from the results' tagging info
-  let finalQuery = query
-  if (!finalQuery && results.length > 0) {
-    const firstResult = results[0]
-    if (firstResult?.tagging?.click?.params?.q) {
-      finalQuery = String(firstResult.tagging.click.params.q)
-      console.warn(`Query was empty, extracted from tagging: "${finalQuery}"`)
-    }
+function getTag(productId: string, type: 'query' | 'general' | 'category'): StoredTag | null {
+  try {
+    const key = STORAGE_KEYS[type]
+    const storage = JSON.parse(localStorage.getItem(key) || '{}') as TagStorage
+    return storage[productId] || null
+  } catch (error) {
+    console.error('Error getting buzz factor tag:', error)
+    return null
   }
+}
 
-  console.warn(
-    `Assigning buzz factor tags for ${results.length} results with query "${finalQuery}"`,
-  )
+function getAllStoredTags(
+  productId: string,
+): { type: 'query' | 'general' | 'category'; tag: StoredTag }[] {
+  const tags: { type: 'query' | 'general' | 'category'; tag: StoredTag }[] = []
 
-  // Make sure we work with the original results for proper reactivity
-  const resultsCopy = [...results]
+  const queryTag = getTag(productId, 'query')
+  if (queryTag) tags.push({ type: 'query', tag: queryTag })
 
-  // Calculate maximum 10% of the results for all tags combined
-  const maxTaggedProducts = Math.max(2, Math.floor(results.length * 0.1)) // Ensure at least 2 tags
-  console.warn(`Maximum tagged products (10%): ${maxTaggedProducts}`)
+  const categoryTag = getTag(productId, 'category')
+  if (categoryTag) tags.push({ type: 'category', tag: categoryTag })
 
-  // We have 3 tag types, each should get approximately 1/3 of the maxTaggedProducts
-  const tagsPerGroup = Math.max(1, Math.floor(maxTaggedProducts / 3))
-  console.warn(`Tags per group (1/3 of max): ${tagsPerGroup}`)
+  const generalTag = getTag(productId, 'general')
+  if (generalTag) tags.push({ type: 'general', tag: generalTag })
 
-  // Get category names from the results (handling nested array structure correctly)
+  return tags
+}
+
+// Helper functions
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  return shuffled
+}
+
+function getCategoriesFromResults(results: Result[]): string[] {
   const allCategories: string[] = []
-  resultsCopy.forEach(result => {
-    // Check if the result has categories field and it's an array
+
+  results.forEach(result => {
     if (result.categories && Array.isArray(result.categories)) {
-      // Categories is an array of arrays, each with a single string: [["midi"], ["shirt"], ["red"]]
       result.categories.forEach(categoryArray => {
         if (Array.isArray(categoryArray) && categoryArray.length > 0) {
-          // Add the first item from each inner array, but exclude "Default"
           if (typeof categoryArray[0] === 'string' && categoryArray[0] !== 'Default') {
             allCategories.push(categoryArray[0])
           }
         } else if (typeof categoryArray === 'string' && categoryArray !== 'Default') {
-          // Handle case where categories might be a flat array of strings, exclude "Default"
           allCategories.push(categoryArray)
         }
       })
     }
   })
 
-  // Deduplicate categories
-  const categories = Array.from(new Set(allCategories))
-  console.warn(`Found ${categories.length} unique categories (excluding "Default"):`, categories)
-
-  // If no categories found from categories field, fall back to collection
-  if (categories.length === 0) {
-    const collectionsAsCategories = Array.from(
-      new Set(
-        resultsCopy
-          .map(result => result.collection)
-          .filter(collection => Boolean(collection) && collection !== 'Default'),
-      ),
+  if (allCategories.length === 0) {
+    const collections = Array.from(
+      new Set(results.map(result => result.collection).filter(Boolean)),
     )
-    console.warn(
-      `No categories found, falling back to ${collectionsAsCategories.length} collections (excluding "Default")`,
-    )
-    categories.push(...collectionsAsCategories)
+    allCategories.push(...collections)
   }
 
-  // Predefined tag groups (each representing an equal share of the 10%)
-  const tagGroups = [
-    // Always show query-based tags first (if query exists)
-    ...(finalQuery.trim() ? [{ tag: `Hype in "${finalQuery}"`, count: tagsPerGroup }] : []),
-    // Then show non-query tags
-    { tag: 'Trending now', count: tagsPerGroup },
-    { tag: 'Popular in', count: tagsPerGroup, useCategory: true },
-  ]
+  return Array.from(new Set(allCategories))
+}
 
-  console.warn(
-    'Tag groups to apply:',
-    tagGroups.map(g => g.tag),
-  )
+// Tag application functions
+function applyTagToResult(
+  result: Result,
+  tagType: 'query' | 'category' | 'general',
+  query: string,
+  categories: string[],
+  taggedResults: Set<string>,
+  usedTagTypes: Set<string>,
+  isFirstEight: boolean,
+): void {
+  const productId = String(result.id)
 
-  // Track which results are already tagged
-  const taggedResults = new Set<string>()
-  // Track which tag types have been used in the first 8 results
-  const usedTagTypes = new Set<string>()
-
-  // Function to process a result and apply a tag
-  const processResult = (
-    result: Result,
-    groupIndex: number,
-    isFirstEight: boolean = false,
-  ): boolean => {
-    // Skip if already tagged
-    if (taggedResults.has(String(result.id))) return false
-
-    // Find the original result in our array
-    const originalIndex = results.findIndex(r => String(r.id) === String(result.id))
-    if (originalIndex === -1) return false
-
-    const originalResult = results[originalIndex]
-    if (!originalResult) return false
-
-    const group = tagGroups[groupIndex]
-
-    // For first 8 results, ensure we don't use the same tag type twice
+  // Check if this product already has a stored tag of this type
+  const existingTag = getTag(productId, tagType)
+  if (existingTag) {
+    result.buzzFactorTag = existingTag.tag
+    taggedResults.add(productId)
     if (isFirstEight) {
-      const tagType = group.useCategory
-        ? 'category'
-        : group.tag.includes('Hype in')
-          ? 'query'
-          : 'general'
-      if (usedTagTypes.has(tagType)) {
-        return false
-      }
       usedTagTypes.add(tagType)
     }
-
-    // For category-specific tags
-    if (group.useCategory && categories.length) {
-      // Get the product's categories, flattening the nested structure
-      let productCategoryStrings: string[] = []
-
-      // Extract categories directly from the product's field
-      const productCategories = originalResult.categories
-
-      if (productCategories && Array.isArray(productCategories)) {
-        productCategories.forEach(category => {
-          if (Array.isArray(category)) {
-            if (
-              category.length > 0 &&
-              typeof category[0] === 'string' &&
-              category[0] !== 'Default'
-            ) {
-              productCategoryStrings.push(category[0])
-            }
-          } else if (typeof category === 'string' && category !== 'Default') {
-            productCategoryStrings.push(category)
-          }
-        })
-      }
-
-      // Filter out empty values
-      productCategoryStrings = productCategoryStrings.filter(Boolean)
-
-      // Try alternative approaches to find categories if none were found
-      if (productCategoryStrings.length === 0) {
-        // Try looking for embedded category information in product name
-        if (originalResult.name && typeof originalResult.name === 'string') {
-          const nameParts = originalResult.name.split(' ')
-          if (nameParts.length > 0 && nameParts[0] !== 'Default') {
-            productCategoryStrings.push(nameParts[0])
-          }
-        }
-
-        // Try looking for properties that might contain category information
-        const product = originalResult as unknown as Record<string, unknown>
-        const possibleCategoryFields = ['type', 'group', 'category', 'className']
-        for (const field of possibleCategoryFields) {
-          const value = product[field]
-          if (typeof value === 'string' && value !== 'Default') {
-            productCategoryStrings.push(value)
-          }
-        }
-      }
-
-      // Skip category tags for this product if it has no valid categories
-      if (productCategoryStrings.length === 0) {
-        if (!originalResult.collection || originalResult.collection === 'Default') {
-          return false
-        }
-      }
-
-      if (productCategoryStrings.length > 0) {
-        const randomIndex = Math.floor(Math.random() * productCategoryStrings.length)
-        const productCategory = productCategoryStrings[randomIndex]
-        if (productCategory) {
-          originalResult.buzzFactorTag = `${group.tag} "${productCategory}"`
-        }
-      } else if (originalResult.collection && originalResult.collection !== 'Default') {
-        originalResult.buzzFactorTag = `${group.tag} "${originalResult.collection}"`
-      } else if (categories.length > 0) {
-        const randomCategory = categories[Math.floor(Math.random() * categories.length)]
-        originalResult.buzzFactorTag = `${group.tag} "${randomCategory}"`
-      } else {
-        return false
-      }
-    } else {
-      // For non-category tags
-      originalResult.buzzFactorTag = group.tag
-    }
-
-    // Mark this result as tagged
-    taggedResults.add(String(originalResult.id))
-    return true
+    return
   }
 
-  // First, ensure we have at least one tag in the first 4 results
+  // If no stored tag exists, create and save a new one
+  switch (tagType) {
+    case 'query':
+      result.buzzFactorTag = `Hype in "${query}"`
+      saveTag(productId, `Hype in "${query}"`, 'query', query)
+      break
+    case 'category':
+      if (categories.length > 0) {
+        // Filter out categories with years
+        const validCategories = categories.filter(category => !category.match(/\d{4}/))
+        if (validCategories.length > 0) {
+          const category = validCategories[Math.floor(Math.random() * validCategories.length)]
+          result.buzzFactorTag = `Popular in "${category}"`
+          saveTag(productId, `Popular in "${category}"`, 'category')
+        }
+      }
+      break
+    case 'general':
+      result.buzzFactorTag = 'Trending now'
+      saveTag(productId, 'Trending now', 'general')
+      break
+  }
+
+  taggedResults.add(productId)
+  if (isFirstEight) {
+    usedTagTypes.add(tagType)
+  }
+}
+
+function getAvailableTagType(usedTagTypes: Set<string>): 'query' | 'category' | 'general' {
+  if (!usedTagTypes.has('query')) return 'query'
+  if (!usedTagTypes.has('category')) return 'category'
+  return 'general'
+}
+
+// Main tag assignment function
+export function assignBuzzFactorTags(results: Result[], query: string): Result[] {
+  if (!results.length) return results
+
+  // Make a copy of results to work with
+  const resultsCopy = [...results]
+
+  // Calculate limits
+  const totalResults = resultsCopy.length
+  const maxTaggedProducts = Math.floor(totalResults * 0.2)
+  const first50Limit = Math.floor(50 * 0.2) // 10 tags
+  const firstEightLimit = 2
+  const firstFourLimit = 1
+
+  // Initialize tracking sets
+  const taggedResults = new Set<string>()
+  const usedTagTypes = new Set<string>()
+
+  // Get categories
+  const categories = getCategoriesFromResults(resultsCopy)
+
+  // Split results into sections
   const firstFourResults = resultsCopy.slice(0, 4)
-  let firstFourTagged = false
-  for (let i = 0; i < firstFourResults.length && !firstFourTagged; i++) {
-    for (let groupIndex = 0; groupIndex < tagGroups.length; groupIndex++) {
-      if (processResult(firstFourResults[i], groupIndex, true)) {
-        firstFourTagged = true
-        break
-      }
-    }
-  }
-
-  // Then, ensure we have at least two tags in the first 8 results
   const firstEightResults = resultsCopy.slice(0, 8)
-  let firstEightTagged = 0
-  let attempts = 0
-  const maxAttempts = 100 // Prevent infinite loop
+  const first50Results = resultsCopy.slice(0, 50)
+  const remainingResults = resultsCopy.slice(50)
 
-  while (firstEightTagged < 2 && attempts < maxAttempts) {
-    attempts++
-    // Try to tag a random result from the first 8 that isn't already tagged
-    const untaggedIndices = firstEightResults
-      .map((_, index) => index)
-      .filter(index => !taggedResults.has(String(firstEightResults[index].id)))
+  // Phase 1: Apply stored tags to first 8 results
+  for (const result of firstEightResults) {
+    const productId = String(result.id)
+    const storedTags = getAllStoredTags(productId)
 
-    if (untaggedIndices.length === 0) break
-
-    const randomIndex = untaggedIndices[Math.floor(Math.random() * untaggedIndices.length)]
-    const result = firstEightResults[randomIndex]
-
-    for (let groupIndex = 0; groupIndex < tagGroups.length; groupIndex++) {
-      if (processResult(result, groupIndex, true)) {
-        firstEightTagged++
+    // Try to apply a stored tag that doesn't conflict with used types
+    for (const { type, tag } of storedTags) {
+      if (type === 'query' && tag.query === query && !usedTagTypes.has('query')) {
+        result.buzzFactorTag = tag.tag
+        taggedResults.add(productId)
+        usedTagTypes.add('query')
+        break
+      } else if (type === 'category' && !usedTagTypes.has('category')) {
+        result.buzzFactorTag = tag.tag
+        taggedResults.add(productId)
+        usedTagTypes.add('category')
+        break
+      } else if (type === 'general' && !usedTagTypes.has('general')) {
+        result.buzzFactorTag = tag.tag
+        taggedResults.add(productId)
+        usedTagTypes.add('general')
         break
       }
     }
   }
 
-  // Distribute remaining tags across the rest of the results
-  const remainingResults = resultsCopy.slice(8)
-  let remainingTags = maxTaggedProducts - firstEightTagged
-  let currentGroupIndex = 0
-
-  for (let i = 0; i < remainingResults.length && remainingTags > 0; i++) {
-    if (processResult(remainingResults[i], currentGroupIndex, false)) {
-      remainingTags--
-      currentGroupIndex = (currentGroupIndex + 1) % tagGroups.length
+  // Phase 2: Ensure minimum tags in first 4 and 8
+  const firstFourTagged = firstFourResults.filter(r => taggedResults.has(String(r.id))).length
+  if (firstFourTagged < firstFourLimit) {
+    const untaggedFirstFour = shuffleArray(
+      firstFourResults.filter(r => !taggedResults.has(String(r.id))),
+    )
+    if (untaggedFirstFour.length > 0) {
+      applyTagToResult(
+        untaggedFirstFour[0],
+        getAvailableTagType(usedTagTypes),
+        query,
+        categories,
+        taggedResults,
+        usedTagTypes,
+        true,
+      )
     }
   }
 
-  console.warn(
-    `Tag distribution: First 4: ${firstFourTagged ? 1 : 0}, First 8: ${firstEightTagged}, Remaining: ${maxTaggedProducts - firstEightTagged}`,
-  )
-  console.warn('Used tag types in first 8:', Array.from(usedTagTypes))
+  while (firstEightResults.filter(r => taggedResults.has(String(r.id))).length < firstEightLimit) {
+    const untaggedFirstEight = shuffleArray(
+      firstEightResults.filter(r => !taggedResults.has(String(r.id))),
+    )
+    if (untaggedFirstEight.length === 0) break
+    applyTagToResult(
+      untaggedFirstEight[0],
+      getAvailableTagType(usedTagTypes),
+      query,
+      categories,
+      taggedResults,
+      usedTagTypes,
+      true,
+    )
+  }
 
-  return results
+  // Phase 3: Apply stored tags to remaining results
+  for (const result of remainingResults) {
+    if (taggedResults.size >= maxTaggedProducts) break
+
+    const productId = String(result.id)
+    const storedTags = getAllStoredTags(productId)
+
+    // Try to apply any stored tag
+    for (const { type, tag } of storedTags) {
+      if (type === 'query' && tag.query === query) {
+        result.buzzFactorTag = tag.tag
+        taggedResults.add(productId)
+        break
+      } else if (type === 'category' || type === 'general') {
+        result.buzzFactorTag = tag.tag
+        taggedResults.add(productId)
+        break
+      }
+    }
+  }
+
+  // Phase 4: Ensure 20% tags in first 50
+  const first50Tagged = first50Results.filter(r => taggedResults.has(String(r.id))).length
+  if (first50Tagged < first50Limit) {
+    const untaggedFirst50 = shuffleArray(
+      first50Results.filter(r => !taggedResults.has(String(r.id))),
+    )
+    const neededTags = first50Limit - first50Tagged
+
+    for (let i = 0; i < neededTags && i < untaggedFirst50.length; i++) {
+      const result = untaggedFirst50[i]
+      const tagType = ['query', 'category', 'general'][Math.floor(Math.random() * 3)] as
+        | 'query'
+        | 'category'
+        | 'general'
+      applyTagToResult(result, tagType, query, categories, taggedResults, usedTagTypes, false)
+    }
+  }
+
+  // Phase 5: Distribute remaining tags
+  const remainingTags = maxTaggedProducts - taggedResults.size
+  if (remainingTags > 0) {
+    const untaggedResults = shuffleArray(resultsCopy.filter(r => !taggedResults.has(String(r.id))))
+
+    for (let i = 0; i < remainingTags && i < untaggedResults.length; i++) {
+      const result = untaggedResults[i]
+      const tagType = ['query', 'category', 'general'][Math.floor(Math.random() * 3)] as
+        | 'query'
+        | 'category'
+        | 'general'
+      applyTagToResult(result, tagType, query, categories, taggedResults, usedTagTypes, false)
+    }
+  }
+
+  return resultsCopy
 }
