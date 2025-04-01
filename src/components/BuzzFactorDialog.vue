@@ -1,7 +1,7 @@
 <template>
   <div class="buzz-factor-dialog">
     <div class="dialog-header">
-      <h2>Understanding Buzz Factor</h2>
+      <h2>What is Buzz Factor?</h2>
     </div>
     <div class="dialog-body">
       <div class="info-section">
@@ -10,7 +10,6 @@
             <span class="material-icons">trending_up</span>
           </div>
         </div>
-        <h3>What is Buzz Factor?</h3>
         <p>
           Buzz Factor highlights products that are creating excitement in our community. It shows
           you what's trending, popular, or generating buzz in different categories.
@@ -63,7 +62,7 @@ export default defineComponent({
 
 .dialog-header {
   margin-top: 2rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   text-align: center;
 }
 

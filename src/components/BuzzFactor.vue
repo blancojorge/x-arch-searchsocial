@@ -68,10 +68,6 @@ export default defineComponent({
   z-index: 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   max-width: calc(100% - 20px);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: pointer;
   transition:
     transform 0.2s,
     box-shadow 0.2s;
@@ -80,6 +76,12 @@ export default defineComponent({
   border: none;
   background: none;
   font-family: inherit;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+}
+
+.buzz-factor-tag-content {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -87,6 +89,11 @@ export default defineComponent({
 
 .buzz-factor-tag .buzz-factor-tag-text {
   margin-left: 0.4rem;
+  overflow: hidden;
+  white-space: nowrap;
+  display: block;
+  text-overflow: ellipsis;
+  cursor: pointer;
 }
 
 .buzz-factor-tag:hover {
