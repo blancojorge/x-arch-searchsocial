@@ -89,21 +89,8 @@ export default defineComponent({
     showDescription: { type: Boolean, default: true },
     showAddToCart: { type: Boolean, default: true },
   },
-  setup(props) {
+  setup() {
     const { isDesktopOrGreater } = useDevice()
-
-    if (props.result) {
-      console.warn(
-        'Sample product structure:',
-        JSON.stringify({
-          id: props.result.id,
-          name: props.result.name,
-          categories: props.result.categories,
-          collection: props.result.collection,
-          brand: props.result.brand,
-        }),
-      )
-    }
 
     return {
       isDesktopOrGreater,
