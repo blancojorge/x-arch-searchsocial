@@ -5,8 +5,9 @@
     <Tagging />
     <UrlHandler />
     <ExperienceControls />
-    <MainModal v-if="isOpen" data-wysiwyg="layer" />
-    <BuzzFactorDialogContainer />
+    <MainModal v-if="isOpen" data-wysiwyg="layer">
+      <BuzzFactorDialogContainer ref="buzzFactorDialogContainer" />
+    </MainModal>
   </div>
 </template>
 
@@ -66,6 +67,17 @@ export default defineComponent({
       throw new Error('snippetConfig is required')
     }
     const isOpen = ref(false)
+    const buzzFactorDialogContainer = ref()
+
+    // Provide the dialog container methods to child components
+    provide('buzzFactorDialogContainer', {
+      openDialog: () => {
+        buzzFactorDialogContainer.value?.openDialog()
+      },
+      closeDialog: () => {
+        buzzFactorDialogContainer.value?.closeDialog()
+      },
+    })
 
     const openXEvents = ['UserOpenXProgrammatically', 'UserClickedOpenX']
 
@@ -205,6 +217,7 @@ export default defineComponent({
     return {
       isOpen,
       documentDirection,
+      buzzFactorDialogContainer,
     }
   },
 })

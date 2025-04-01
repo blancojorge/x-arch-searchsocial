@@ -1,134 +1,68 @@
 <template>
-  <div class="dialog-overlay" @click="handleOverlayClick">
-    <div class="dialog-content" @click.stop>
-      <BaseIdModalClose modal-id="buzz-factor-dialog" class="close-button">
-        &times;
-      </BaseIdModalClose>
-
-      <div class="dialog-header">
-        <h2>{{ title }}</h2>
+  <div class="buzz-factor-dialog">
+    <div class="dialog-header">
+      <h2>Understanding Buzz Factor</h2>
+    </div>
+    <div class="dialog-body">
+      <div class="info-section">
+        <div class="icon-section">
+          <div class="pulse-icon">
+            <span class="material-icons">trending_up</span>
+          </div>
+        </div>
+        <h3>What is Buzz Factor?</h3>
+        <p>
+          Buzz Factor highlights products that are creating excitement in our community. It shows
+          you what's trending, popular, or generating buzz in different categories.
+        </p>
       </div>
 
-      <div class="dialog-body">
-        <div class="info-section">
-          <div class="icon-section">
-            <div class="pulse-icon">
-              <span class="material-icons">trending_up</span>
-            </div>
-          </div>
-          <h3>What is Buzz Factor?</h3>
-          <p>
-            Buzz Factor is our smart way of highlighting products that are creating excitement in
-            our community. It shows you what's trending, popular, or generating buzz in different
-            categories.
-          </p>
+      <div class="tag-types">
+        <div class="tag-type">
+          <div class="tag hype">Hype in "search term"</div>
+          <p>Products that are currently trending in specific search terms</p>
         </div>
+        <div class="tag-type">
+          <div class="tag trending">Trending now</div>
+          <p>The treasures everyone's talking about</p>
+        </div>
+        <div class="tag-type">
+          <div class="tag popular">Popular in "Category"</div>
+          <p>Most sought-after items in their categories</p>
+        </div>
+      </div>
 
-        <div class="tag-types">
-          <div class="tag-type">
-            <div class="tag bestseller">Hype in "Category"</div>
-            <p>Products that are currently trending in specific categories</p>
-          </div>
-          <div class="tag-type">
-            <div class="tag bestseller">Trending now</div>
-            <p>Products that are gaining popularity across all categories</p>
-          </div>
-          <div class="tag-type">
-            <div class="tag bestseller">Popular in "Category"</div>
-            <p>Most sought-after items in their categories</p>
-          </div>
-        </div>
-
-        <div class="info-footer">
-          <p>
-            These tags are updated in real-time based on customer interaction and shopping trends.
-          </p>
-        </div>
+      <div class="info-footer">
+        <p>
+          These factors are updated in a daily basis based customer interaction and shopping trends.
+          <br />
+          <a
+            class="info-footer-link underline"
+            href="https://empathy.co/blog/buzz-factor"
+            target="_blank"
+            >Learn more about Buzz Factor</a
+          >
+        </p>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { BaseIdModalClose } from '@empathyco/x-components'
 import { defineComponent } from 'vue'
 
 export default defineComponent({
   name: 'BuzzFactorDialog',
-  components: {
-    BaseIdModalClose,
-  },
-  props: {
-    title: {
-      type: String,
-      default: 'Understanding Buzz Factor Tags',
-    },
-  },
-  setup() {
-    const handleOverlayClick = (event: Event) => {
-      event.stopPropagation()
-      event.preventDefault()
-    }
-
-    return {
-      handleOverlayClick,
-    }
-  },
 })
 </script>
 
 <style scoped>
-.dialog-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 999999;
-  backdrop-filter: blur(4px);
-}
-
-.dialog-content {
-  background: white;
-  border-radius: 12px;
-  padding: 2rem;
-  max-width: 600px;
-  width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
-  position: relative;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
-  z-index: 1000000;
-}
-
-.close-button {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #666;
-  padding: 0.5rem;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s;
-}
-
-.close-button:hover {
-  background-color: #f5f5f5;
+.buzz-factor-dialog {
+  width: 100%;
 }
 
 .dialog-header {
+  margin-top: 2rem;
   margin-bottom: 2rem;
   text-align: center;
 }
@@ -139,9 +73,15 @@ export default defineComponent({
   margin: 0;
 }
 
+.dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
 .info-section {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 0.3rem;
 }
 
 .icon-section {
@@ -157,19 +97,10 @@ export default defineComponent({
   align-items: center;
   justify-content: center;
   color: white;
-  animation: pulse 2s infinite;
 }
 
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(230, 57, 70, 0.4);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(230, 57, 70, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(230, 57, 70, 0);
-  }
+.pulse-icon .material-icons {
+  font-size: 32px;
 }
 
 .info-section h3 {
@@ -186,7 +117,8 @@ export default defineComponent({
 .tag-types {
   display: grid;
   gap: 1.5rem;
-  margin: 2rem 0;
+  margin: 0.5rem auto;
+  text-align: center;
 }
 
 .tag-type {
@@ -202,10 +134,19 @@ export default defineComponent({
   font-weight: bold;
   color: white;
   width: fit-content;
+  margin: 0 auto;
 }
 
-.bestseller {
+.trending {
   background-color: #e63946;
+}
+
+.hype {
+  background-color: #53b9c9;
+}
+
+.popular {
+  background-color: #edbf3b;
 }
 
 .tag-type p {
@@ -224,10 +165,6 @@ export default defineComponent({
 }
 
 @media (max-width: 640px) {
-  .dialog-content {
-    padding: 1.5rem;
-  }
-
   .dialog-header h2 {
     font-size: 1.5rem;
   }

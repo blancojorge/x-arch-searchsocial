@@ -7,6 +7,7 @@
   >
     <Mobile v-if="isTabletOrLess" />
     <Desktop v-else />
+    <slot></slot>
   </MainModal>
 </template>
 
@@ -43,3 +44,9 @@ export default defineComponent({
   },
 })
 </script>
+
+<style scoped>
+:deep(.x-modal__content) {
+  position: relative;
+}
+</style>

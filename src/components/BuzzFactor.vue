@@ -1,28 +1,24 @@
 <template>
   <div class="buzz-factor-wrapper">
-    <BaseIdModalOpen
-      modal-id="buzz-factor-dialog"
-      class="buzz-factor-tag"
-      :class="tagClass"
-      @click.stop.prevent
-    >
+    <button class="buzz-factor-tag" :class="tagClass" @click.stop.prevent="handleClick">
       <div class="pulse-icon">
         <span class="material-icons">trending_up</span>
       </div>
-      {{ tag }}
-    </BaseIdModalOpen>
+      <span class="buzz-factor-tag-text">{{ tag }}</span>
+    </button>
   </div>
 </template>
 
 <script lang="ts">
-import { BaseIdModalOpen } from '@empathyco/x-components'
-import { computed, defineComponent } from 'vue'
+import { computed, defineComponent, inject } from 'vue'
+
+interface DialogContainer {
+  openDialog: () => void
+  closeDialog: () => void
+}
 
 export default defineComponent({
   name: 'BuzzFactor',
-  components: {
-    BaseIdModalOpen,
-  },
   props: {
     tag: {
       type: String,
@@ -30,6 +26,8 @@ export default defineComponent({
     },
   },
   setup(props) {
+    const dialogContainer = inject<DialogContainer>('buzzFactorDialogContainer')
+
     const tagClass = computed(() => {
       const tag = props.tag.toLowerCase()
       if (tag.includes('hype')) return 'buzz-factor-tag--high'
@@ -38,8 +36,15 @@ export default defineComponent({
       return ''
     })
 
+    const handleClick = () => {
+      if (dialogContainer?.openDialog) {
+        dialogContainer.openDialog()
+      }
+    }
+
     return {
       tagClass,
+      handleClick,
     }
   },
 })
@@ -75,6 +80,13 @@ export default defineComponent({
   border: none;
   background: none;
   font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.buzz-factor-tag .buzz-factor-tag-text {
+  margin-left: 0.4rem;
 }
 
 .buzz-factor-tag:hover {
@@ -83,21 +95,20 @@ export default defineComponent({
 }
 
 .buzz-factor-tag--high {
-  background-color: #e63946;
+  background-color: #edbf3b;
 }
 
 .buzz-factor-tag--medium {
-  background-color: #f4a261;
+  background-color: #e63946;
 }
 
 .buzz-factor-tag--low {
-  background-color: #2a9d8f;
+  background-color: #53b9c9;
 }
 
 .pulse-icon {
   width: 16px;
   height: 16px;
-
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
