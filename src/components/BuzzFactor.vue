@@ -1,57 +1,42 @@
 <template>
   <div class="buzz-factor-wrapper">
-    <div v-if="tag" class="buzz-factor-tag" :class="tagClass" @click.stop.prevent="handleClick">
+    <BaseIdModalOpen
+      modal-id="buzz-factor-dialog"
+      class="buzz-factor-tag"
+      :class="tagClass"
+      @click.stop.prevent
+    >
       {{ tag }}
-    </div>
+    </BaseIdModalOpen>
   </div>
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, ref } from 'vue'
-import { useBuzzFactorDialog } from '../composables/use-buzz-factor-dialog'
+import { BaseIdModalOpen } from '@empathyco/x-components'
+import { computed, defineComponent } from 'vue'
 
 export default defineComponent({
   name: 'BuzzFactor',
+  components: {
+    BaseIdModalOpen,
+  },
   props: {
     tag: {
       type: String,
-      default: null,
+      required: true,
     },
   },
   setup(props) {
-    const { openDialog } = useBuzzFactorDialog()
-    const parentLink = ref<HTMLAnchorElement | null>(null)
-
     const tagClass = computed(() => {
-      if (!props.tag) return ''
-      if (props.tag.includes('Hype')) return 'bestseller'
-      if (props.tag.includes('Trending now')) return 'bestseller'
-      if (props.tag.includes('Popular')) return 'bestseller'
+      const tag = props.tag.toLowerCase()
+      if (tag.includes('hype')) return 'buzz-factor-tag--high'
+      if (tag.includes('trending')) return 'buzz-factor-tag--medium'
+      if (tag.includes('popular')) return 'buzz-factor-tag--low'
       return ''
     })
 
-    const handleClick = (event: Event) => {
-      event.preventDefault()
-      event.stopPropagation()
-
-      // Find and disable the parent link
-      const tag = document.querySelector('.buzz-factor-tag')
-      if (tag) {
-        parentLink.value = tag.closest('a')
-        if (parentLink.value) {
-          // Store the original href
-          const originalHref = parentLink.value.getAttribute('href')
-          parentLink.value.setAttribute('data-original-href', originalHref || '')
-          parentLink.value.removeAttribute('href')
-        }
-      }
-
-      openDialog()
-    }
-
     return {
       tagClass,
-      handleClick,
     }
   },
 })
@@ -59,20 +44,20 @@ export default defineComponent({
 
 <style scoped>
 .buzz-factor-wrapper {
-  position: relative;
-  z-index: 30;
+  background-color: rebeccapurple;
 }
 
 .buzz-factor-tag {
   position: absolute;
   top: 10px;
   left: 10px;
-  padding: 6px 10px;
+  min-height: 25px;
+  padding: 2px 10px;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 0.7em;
   font-weight: bold;
   color: white;
-  z-index: 31;
+  z-index: 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   max-width: calc(100% - 20px);
   white-space: nowrap;
@@ -83,6 +68,10 @@ export default defineComponent({
     transform 0.2s,
     box-shadow 0.2s;
   user-select: none;
+  text-decoration: none;
+  border: none;
+  background: none;
+  font-family: inherit;
 }
 
 .buzz-factor-tag:hover {
@@ -90,11 +79,15 @@ export default defineComponent({
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.bestseller {
+.buzz-factor-tag--high {
   background-color: #e63946;
 }
 
-.rising-star {
-  background-color: #4361ee;
+.buzz-factor-tag--medium {
+  background-color: #f4a261;
+}
+
+.buzz-factor-tag--low {
+  background-color: #2a9d8f;
 }
 </style>

@@ -1,7 +1,9 @@
 <template>
-  <div v-show="isOpen" class="dialog-overlay" @click="closeDialog">
+  <div class="dialog-overlay" @click="handleOverlayClick">
     <div class="dialog-content" @click.stop>
-      <button class="close-button" @click="closeDialog">&times;</button>
+      <BaseIdModalClose modal-id="buzz-factor-dialog" class="close-button">
+        &times;
+      </BaseIdModalClose>
 
       <div class="dialog-header">
         <h2>{{ title }}</h2>
@@ -48,28 +50,28 @@
 </template>
 
 <script lang="ts">
+import { BaseIdModalClose } from '@empathyco/x-components'
 import { defineComponent } from 'vue'
 
 export default defineComponent({
   name: 'BuzzFactorDialog',
+  components: {
+    BaseIdModalClose,
+  },
   props: {
-    isOpen: {
-      type: Boolean,
-      required: true,
-    },
     title: {
       type: String,
       default: 'Understanding Buzz Factor Tags',
     },
   },
-  emits: ['close'],
-  setup(props, { emit }) {
-    const closeDialog = () => {
-      emit('close')
+  setup() {
+    const handleOverlayClick = (event: Event) => {
+      event.stopPropagation()
+      event.preventDefault()
     }
 
     return {
-      closeDialog,
+      handleOverlayClick,
     }
   },
 })

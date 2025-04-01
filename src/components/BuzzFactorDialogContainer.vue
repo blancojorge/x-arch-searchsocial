@@ -1,34 +1,34 @@
 <template>
-  <teleport to="body">
-    <BuzzFactorDialog
-      :is-open="isOpen"
-      title="Understanding Buzz Factor Tags"
-      @close="closeDialog"
-    />
-  </teleport>
+  <BaseIdModal modal-id="buzz-factor-dialog" :animation="animation" content-class="x-bg-neutral-0">
+    <BuzzFactorDialog title="Understanding Buzz Factor Tags" />
+  </BaseIdModal>
 </template>
 
 <script lang="ts">
-import { defineComponent, watch } from 'vue'
-import { useBuzzFactorDialog } from '../composables/use-buzz-factor-dialog'
+import { animateScale, BaseIdModal } from '@empathyco/x-components'
+import { defineComponent } from 'vue'
 import BuzzFactorDialog from './BuzzFactorDialog.vue'
 
 export default defineComponent({
   name: 'BuzzFactorDialogContainer',
   components: {
     BuzzFactorDialog,
+    BaseIdModal,
   },
   setup() {
-    const { isOpen, closeDialog } = useBuzzFactorDialog()
-
-    watch(isOpen, newValue => {
-      console.warn('Dialog container state changed:', newValue)
-    })
+    const animation = animateScale()
 
     return {
-      isOpen,
-      closeDialog,
+      animation,
     }
   },
 })
 </script>
+
+<style scoped>
+.buzz-factor-dialog-container {
+  isolation: isolate;
+  position: fixed;
+  z-index: 999999;
+}
+</style>

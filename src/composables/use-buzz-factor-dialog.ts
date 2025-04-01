@@ -1,23 +1,27 @@
 import { ref } from 'vue'
 
-// Shared state
-const isOpen = ref(false)
+export interface BuzzFactorTag {
+  label: string
+  type: 'high' | 'medium' | 'low'
+}
 
-export const useBuzzFactorDialog = () => {
-  const openDialog = () => {
-    console.warn('Opening dialog, current state:', isOpen.value)
+const isOpen = ref(false)
+const currentTag = ref<BuzzFactorTag | null>(null)
+
+export function useBuzzFactorDialog() {
+  const openDialog = (tag: BuzzFactorTag) => {
+    currentTag.value = tag
     isOpen.value = true
-    console.warn('Dialog state after opening:', isOpen.value)
   }
 
   const closeDialog = () => {
-    console.warn('Closing dialog, current state:', isOpen.value)
     isOpen.value = false
-    console.warn('Dialog state after closing:', isOpen.value)
+    currentTag.value = null
   }
 
   return {
     isOpen,
+    currentTag,
     openDialog,
     closeDialog,
   }
