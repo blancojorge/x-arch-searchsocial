@@ -238,9 +238,23 @@ export function assignBuzzFactorTags(results: Result[], query: string): Result[]
   // Then, ensure we have at least two tags in the first 8 results
   const firstEightResults = resultsCopy.slice(0, 8)
   let firstEightTagged = 0
-  for (let i = 0; i < firstEightResults.length && firstEightTagged < 2; i++) {
+  let attempts = 0
+  const maxAttempts = 100 // Prevent infinite loop
+
+  while (firstEightTagged < 2 && attempts < maxAttempts) {
+    attempts++
+    // Try to tag a random result from the first 8 that isn't already tagged
+    const untaggedIndices = firstEightResults
+      .map((_, index) => index)
+      .filter(index => !taggedResults.has(String(firstEightResults[index].id)))
+
+    if (untaggedIndices.length === 0) break
+
+    const randomIndex = untaggedIndices[Math.floor(Math.random() * untaggedIndices.length)]
+    const result = firstEightResults[randomIndex]
+
     for (let groupIndex = 0; groupIndex < tagGroups.length; groupIndex++) {
-      if (processResult(firstEightResults[i], groupIndex, true)) {
+      if (processResult(result, groupIndex, true)) {
         firstEightTagged++
         break
       }
