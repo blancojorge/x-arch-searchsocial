@@ -90,7 +90,11 @@ export default defineComponent({
       // Add buzz factor tags to results
       if (payload.results && payload.results.length > 0) {
         // Get the search query from multiple possible sources
-        const searchQuery = payload.query || payload.request?.query || window.initX?.query || ''
+        const searchQuery =
+          (payload as any).query ||
+          (payload.request as InternalSearchRequest)?.query ||
+          (typeof window.initX === 'function' ? window.initX().query : window.initX?.query) ||
+          ''
 
         console.warn(`Adding buzz factor tags for search query: "${searchQuery}"`)
 
