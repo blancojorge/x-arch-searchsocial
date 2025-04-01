@@ -6,6 +6,7 @@
     <UrlHandler />
     <ExperienceControls />
     <MainModal v-if="isOpen" data-wysiwyg="layer" />
+    <BuzzFactorDialogContainer />
   </div>
 </template>
 
@@ -31,6 +32,7 @@ import {
   ref,
   watch,
 } from 'vue'
+import BuzzFactorDialogContainer from './components/BuzzFactorDialogContainer.vue'
 import { useDevice } from './composables/use-device.composable'
 import { isIOS, removeSearchInputFocus } from './composables/use-ios-utils-composable'
 import currencies from './i18n/currencies'
@@ -50,6 +52,7 @@ export default defineComponent({
     Tagging,
     UrlHandler,
     ExperienceControls,
+    BuzzFactorDialogContainer,
     MainModal: defineAsyncComponent(() =>
       import('./components/custom-main-modal.vue').then(m => m.default),
     ),

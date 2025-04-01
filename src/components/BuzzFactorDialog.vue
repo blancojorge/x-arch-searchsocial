@@ -1,52 +1,50 @@
 <template>
-  <teleport to="body">
-    <div v-show="isOpen" class="dialog-overlay" @click="closeDialog">
-      <div class="dialog-content" @click.stop>
-        <button class="close-button" @click="closeDialog">&times;</button>
+  <div v-show="isOpen" class="dialog-overlay" @click="closeDialog">
+    <div class="dialog-content" @click.stop>
+      <button class="close-button" @click="closeDialog">&times;</button>
 
-        <div class="dialog-header">
-          <h2>{{ title }}</h2>
+      <div class="dialog-header">
+        <h2>{{ title }}</h2>
+      </div>
+
+      <div class="dialog-body">
+        <div class="info-section">
+          <div class="icon-section">
+            <div class="pulse-icon">
+              <span class="material-icons">trending_up</span>
+            </div>
+          </div>
+          <h3>What is Buzz Factor?</h3>
+          <p>
+            Buzz Factor is our smart way of highlighting products that are creating excitement in
+            our community. It shows you what's trending, popular, or generating buzz in different
+            categories.
+          </p>
         </div>
 
-        <div class="dialog-body">
-          <div class="info-section">
-            <div class="icon-section">
-              <div class="pulse-icon">
-                <span class="material-icons">trending_up</span>
-              </div>
-            </div>
-            <h3>What is Buzz Factor?</h3>
-            <p>
-              Buzz Factor is our smart way of highlighting products that are creating excitement in
-              our community. It shows you what's trending, popular, or generating buzz in different
-              categories.
-            </p>
+        <div class="tag-types">
+          <div class="tag-type">
+            <div class="tag bestseller">Hype in "Category"</div>
+            <p>Products that are currently trending in specific categories</p>
           </div>
+          <div class="tag-type">
+            <div class="tag bestseller">Trending now</div>
+            <p>Products that are gaining popularity across all categories</p>
+          </div>
+          <div class="tag-type">
+            <div class="tag bestseller">Popular in "Category"</div>
+            <p>Most sought-after items in their categories</p>
+          </div>
+        </div>
 
-          <div class="tag-types">
-            <div class="tag-type">
-              <div class="tag bestseller">Hype in "Category"</div>
-              <p>Products that are currently trending in specific categories</p>
-            </div>
-            <div class="tag-type">
-              <div class="tag bestseller">Trending now</div>
-              <p>Products that are gaining popularity across all categories</p>
-            </div>
-            <div class="tag-type">
-              <div class="tag bestseller">Popular in "Category"</div>
-              <p>Most sought-after items in their categories</p>
-            </div>
-          </div>
-
-          <div class="info-footer">
-            <p>
-              These tags are updated in real-time based on customer interaction and shopping trends.
-            </p>
-          </div>
+        <div class="info-footer">
+          <p>
+            These tags are updated in real-time based on customer interaction and shopping trends.
+          </p>
         </div>
       </div>
     </div>
-  </teleport>
+  </div>
 </template>
 
 <script lang="ts">

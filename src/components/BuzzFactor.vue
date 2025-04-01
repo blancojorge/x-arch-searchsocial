@@ -3,23 +3,15 @@
     <div v-if="tag" class="buzz-factor-tag" :class="tagClass" @click.stop.prevent="handleClick">
       {{ tag }}
     </div>
-    <BuzzFactorDialog
-      :is-open="isDialogOpen"
-      title="Understanding Buzz Factor Tags"
-      @close="closeDialog"
-    />
   </div>
 </template>
 
 <script lang="ts">
 import { computed, defineComponent, ref } from 'vue'
-import BuzzFactorDialog from './BuzzFactorDialog.vue'
+import { useBuzzFactorDialog } from '../composables/use-buzz-factor-dialog'
 
 export default defineComponent({
   name: 'BuzzFactor',
-  components: {
-    BuzzFactorDialog,
-  },
   props: {
     tag: {
       type: String,
@@ -27,7 +19,7 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const isDialogOpen = ref(false)
+    const { openDialog } = useBuzzFactorDialog()
     const parentLink = ref<HTMLAnchorElement | null>(null)
 
     const tagClass = computed(() => {
@@ -54,28 +46,12 @@ export default defineComponent({
         }
       }
 
-      isDialogOpen.value = true
-    }
-
-    const closeDialog = () => {
-      isDialogOpen.value = false
-
-      // Re-enable the parent link after a short delay
-      if (parentLink.value) {
-        setTimeout(() => {
-          if (parentLink.value) {
-            parentLink.value.style.pointerEvents = 'auto'
-            parentLink.value = null
-          }
-        }, 100)
-      }
+      openDialog()
     }
 
     return {
       tagClass,
-      isDialogOpen,
       handleClick,
-      closeDialog,
     }
   },
 })
