@@ -31,7 +31,7 @@ interface EmpathyDemoPlatformResult extends PlatformResult {
   description: string
   collection: string
   brand: string
-  rating: number
+  rating?: number
 }
 
 declare module '@empathyco/x-types' {
@@ -39,8 +39,12 @@ declare module '@empathyco/x-types' {
     collection: string
     description: string
     brand: string
-    rating: ResultRating
+    rating?: ResultRating
   }
+}
+
+const isValidRating = (rating: number): boolean => {
+  return rating >= 0 && rating <= 5 && Number.isInteger(rating)
 }
 
 resultSchema.$override<EmpathyDemoPlatformResult, Partial<Result>>({
@@ -48,7 +52,8 @@ resultSchema.$override<EmpathyDemoPlatformResult, Partial<Result>>({
   collection: 'collection',
   brand: 'brand',
   images: ({ __images }) => (Array.isArray(__images) ? __images.reverse() : [__images]),
-  rating: ({ rating }) => ({ value: rating }),
+  rating: ({ rating }) =>
+    rating !== undefined && isValidRating(rating) ? { value: rating } : undefined,
 })
 
 // Disable features by creating empty endpoint adapters
