@@ -30,9 +30,9 @@ export default defineComponent({
 
     const tagClass = computed(() => {
       const tag = props.tag.toLowerCase()
-      if (tag.includes('crowd favorite')) return 'pcr-tag--high'
+      if (tag.includes('sales hit')) return 'pcr-tag--high'
       if (tag.includes('bestseller')) return 'pcr-tag--medium'
-      if (tag.includes('sales hit')) return 'pcr-tag--low'
+      if (tag.includes('trusted pick')) return 'pcr-tag--low'
       return ''
     })
 
@@ -121,7 +121,7 @@ export default defineComponent({
   justify-content: center;
   color: rgb(0, 0, 0);
   animation: pulse 2s infinite;
-  margin-left: 0.5rem;
+  margin-left: 0.5 rem;
 }
 
 @keyframes pulse {
