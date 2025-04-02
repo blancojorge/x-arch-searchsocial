@@ -53,7 +53,6 @@ resultSchema.$override<EmpathyDemoPlatformResult, Partial<Result>>({
   brand: 'brand',
   images: ({ __images }) => (Array.isArray(__images) ? __images.reverse() : [__images]),
   rating: ({ rating }) => {
-    console.warn('Mapping rating:', rating)
     if (rating !== undefined && isValidRating(rating)) {
       // Round to nearest integer and clamp between 0 and 5
       const roundedRating = Math.round(rating)

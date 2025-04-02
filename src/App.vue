@@ -6,8 +6,9 @@
     <UrlHandler />
     <ExperienceControls />
     <MainModal v-if="isOpen" data-wysiwyg="layer">
-      <BuzzFactorDialogContainer ref="buzzFactorDialogContainer" />
+      <BuzzFactorDialogContainer ref="buzzFactorDialog" />
     </MainModal>
+    <PCRDialogContainer ref="pcrDialog" />
   </div>
 </template>
 
@@ -34,10 +35,12 @@ import {
   watch,
 } from 'vue'
 import BuzzFactorDialogContainer from './components/BuzzFactorDialogContainer.vue'
+import PCRDialogContainer from './components/PCRDialogContainer.vue'
 import { useDevice } from './composables/use-device.composable'
 import { isIOS, removeSearchInputFocus } from './composables/use-ios-utils-composable'
 import currencies from './i18n/currencies'
 import { assignBuzzFactorTags } from './utils/buzz-factor'
+import { assignPCRTags } from './utils/purchase-confidence'
 import './tailwind/index.css'
 
 // Add Material Icons font
@@ -47,6 +50,7 @@ materialIconsLink.href = 'https://fonts.googleapis.com/icon?family=Material+Icon
 document.head.appendChild(materialIconsLink)
 
 export default defineComponent({
+  name: 'App',
   components: {
     SnippetCallbacks,
     SnippetConfigExtraParams,
@@ -54,6 +58,7 @@ export default defineComponent({
     UrlHandler,
     ExperienceControls,
     BuzzFactorDialogContainer,
+    PCRDialogContainer,
     MainModal: defineAsyncComponent(() =>
       import('./components/custom-main-modal.vue').then(m => m.default),
     ),
@@ -67,15 +72,16 @@ export default defineComponent({
       throw new Error('snippetConfig is required')
     }
     const isOpen = ref(false)
-    const buzzFactorDialogContainer = ref()
+    const buzzFactorDialog = ref()
+    const pcrDialog = ref()
 
     // Provide the dialog container methods to child components
     provide('buzzFactorDialogContainer', {
       openDialog: () => {
-        buzzFactorDialogContainer.value?.openDialog()
+        buzzFactorDialog.value?.openDialog()
       },
       closeDialog: () => {
-        buzzFactorDialogContainer.value?.closeDialog()
+        buzzFactorDialog.value?.closeDialog()
       },
     })
 
@@ -147,17 +153,20 @@ export default defineComponent({
         })
 
         // Add buzz factor tags to the results
-        payload.results = assignBuzzFactorTags(payload.results, String(searchQuery))
+        const resultsWithBuzzFactor = assignBuzzFactorTags(payload.results, String(searchQuery))
+        const resultsWithPCR = assignPCRTags(resultsWithBuzzFactor, String(searchQuery))
 
         console.warn(
-          'Search results after BF tags:',
-          payload.results
+          'Search results after BF and PCR tags:',
+          resultsWithPCR
             .slice(0, 3)
             .map(r => ({ id: r.id, tag: r.buzzFactorTag, rating: r.rating })),
         )
         console.warn(
-          `Tagged ${payload.results.filter(result => result.buzzFactorTag).length} out of ${payload.results.length} products`,
+          `Tagged ${resultsWithPCR.filter(result => result.buzzFactorTag).length} out of ${resultsWithPCR.length} products`,
         )
+
+        payload.results = resultsWithPCR
       }
     })
 
@@ -228,10 +237,21 @@ export default defineComponent({
       })
     }
 
+    const openBuzzFactorDialog = () => {
+      buzzFactorDialog.value?.openDialog()
+    }
+
+    const openPCRDialog = () => {
+      pcrDialog.value?.openDialog()
+    }
+
     return {
       isOpen,
       documentDirection,
-      buzzFactorDialogContainer,
+      buzzFactorDialog,
+      pcrDialog,
+      openBuzzFactorDialog,
+      openPCRDialog,
     }
   },
 })

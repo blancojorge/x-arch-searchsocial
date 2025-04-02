@@ -19,7 +19,10 @@
           </template>
         </BaseResultImage>
 
-        <BuzzFactor v-if="result.buzzFactorTag" :tag="result.buzzFactorTag" />
+        <div class="result-tags">
+          <BuzzFactor v-if="result.buzzFactorTag" :tag="result.buzzFactorTag" />
+          <PCR v-if="result.pcrTag" :tag="result.pcrTag" />
+        </div>
       </BaseResultLink>
 
       <div
@@ -74,6 +77,7 @@ import { MainScrollItem } from '@empathyco/x-components/scroll'
 import { defineComponent } from 'vue'
 import { useDevice } from '../../composables/use-device.composable'
 import BuzzFactor from '../BuzzFactor.vue'
+import PCR from '../PCR.vue'
 import StarRating from '../StarRating.vue'
 
 export default defineComponent({
@@ -87,6 +91,7 @@ export default defineComponent({
     BaseResultLink,
     MainScrollItem,
     BuzzFactor,
+    PCR,
     StarRating,
   },
   props: {
@@ -104,3 +109,11 @@ export default defineComponent({
   },
 })
 </script>
+
+<style scoped>
+.result-tags {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+</style>
