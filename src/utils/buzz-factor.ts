@@ -120,6 +120,12 @@ function applyTagToResult(
     return
   }
 
+  // Get product's own categories
+  const productCategories =
+    result.categories && Array.isArray(result.categories)
+      ? result.categories.filter(cat => typeof cat === 'string' && cat !== 'Default')
+      : []
+
   // If no stored tag exists, create and save a new one
   switch (tagType) {
     case 'query':
@@ -127,8 +133,8 @@ function applyTagToResult(
       saveTag(productId, `Hype in "${query}"`, 'query', query)
       break
     case 'category':
-      if (categories.length > 0) {
-        const category = categories[Math.floor(Math.random() * categories.length)]
+      if (productCategories.length > 0) {
+        const category = productCategories[Math.floor(Math.random() * productCategories.length)]
         result.buzzFactorTag = `Popular in "${category}"`
         saveTag(productId, `Popular in "${category}"`, 'category')
       } else {

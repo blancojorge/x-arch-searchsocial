@@ -118,6 +118,12 @@ function applyTagToResult(
     return
   }
 
+  // Get product's own categories
+  const productCategories =
+    result.categories && Array.isArray(result.categories)
+      ? result.categories.filter(cat => typeof cat === 'string' && cat !== 'Default')
+      : []
+
   // If no stored tag exists, create and save a new one
   switch (tagType) {
     case 'query':
@@ -125,8 +131,8 @@ function applyTagToResult(
       saveTag(productId, `Sales hit in "${query}"`, 'query', query)
       break
     case 'category':
-      if (categories.length > 0) {
-        const category = categories[Math.floor(Math.random() * categories.length)]
+      if (productCategories.length > 0) {
+        const category = productCategories[Math.floor(Math.random() * productCategories.length)]
         result.pcrTag = `Trusted Pick for "${category}"`
         saveTag(productId, `Trusted Pick for "${category}"`, 'category')
       } else {
