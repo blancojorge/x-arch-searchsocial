@@ -51,7 +51,7 @@
             class="x-text2 x-leading-[1.7] x-text-neutral-75 x-line-through"
           />
         </div>
-        <StarRating v-if="result.rating" :rating="result.rating.value" />
+        <StarRating v-if="result.rating?.value != null" :rating="result.rating.value ?? 0" />
       </div>
     </BaseResultLink>
   </MainScrollItem>

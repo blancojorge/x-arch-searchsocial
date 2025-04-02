@@ -44,7 +44,7 @@ declare module '@empathyco/x-types' {
 }
 
 const isValidRating = (rating: number): boolean => {
-  return rating >= 0 && rating <= 5 && Number.isInteger(rating)
+  return rating >= 0 && rating <= 5
 }
 
 resultSchema.$override<EmpathyDemoPlatformResult, Partial<Result>>({
@@ -52,8 +52,15 @@ resultSchema.$override<EmpathyDemoPlatformResult, Partial<Result>>({
   collection: 'collection',
   brand: 'brand',
   images: ({ __images }) => (Array.isArray(__images) ? __images.reverse() : [__images]),
-  rating: ({ rating }) =>
-    rating !== undefined && isValidRating(rating) ? { value: rating } : undefined,
+  rating: ({ rating }) => {
+    console.warn('Mapping rating:', rating)
+    if (rating !== undefined && isValidRating(rating)) {
+      // Round to nearest integer and clamp between 0 and 5
+      const roundedRating = Math.round(rating)
+      return { value: Math.min(5, Math.max(0, roundedRating)) }
+    }
+    return undefined
+  },
 })
 
 // Disable features by creating empty endpoint adapters

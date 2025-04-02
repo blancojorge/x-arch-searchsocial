@@ -134,12 +134,26 @@ export default defineComponent({
 
         console.warn(`Adding buzz factor tags for search query: "${searchQuery}"`)
 
+        // Debug raw search response data
+        console.warn('Raw search response:', {
+          totalResults: payload.totalResults,
+          results: payload.results.slice(0, 3).map(r => ({
+            id: r.id,
+            name: r.name,
+            rawRating: (r as any).rating,
+            catalog: (r as any).catalog,
+            allFields: Object.keys(r),
+          })),
+        })
+
         // Add buzz factor tags to the results
         payload.results = assignBuzzFactorTags(payload.results, String(searchQuery))
 
         console.warn(
           'Search results after BF tags:',
-          payload.results.slice(0, 3).map(r => ({ id: r.id, tag: r.buzzFactorTag })),
+          payload.results
+            .slice(0, 3)
+            .map(r => ({ id: r.id, tag: r.buzzFactorTag, rating: r.rating })),
         )
         console.warn(
           `Tagged ${payload.results.filter(result => result.buzzFactorTag).length} out of ${payload.results.length} products`,
