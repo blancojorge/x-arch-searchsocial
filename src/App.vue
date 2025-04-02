@@ -8,7 +8,11 @@
     <MainModal v-if="isOpen" data-wysiwyg="layer">
       <BuzzFactorDialogContainer ref="buzzFactorDialog" />
     </MainModal>
-    <PCRDialogContainer ref="pcrDialog" />
+    <PCRModal v-model="isPCROpen">
+      <template #default="{ close }">
+        <PCRDialogContainer ref="pcrDialog" :close="close" />
+      </template>
+    </PCRModal>
   </div>
 </template>
 
@@ -28,6 +32,7 @@ import {
   defineComponent,
   getCurrentInstance,
   inject,
+  nextTick,
   onBeforeUnmount,
   onMounted,
   provide,
@@ -36,6 +41,7 @@ import {
 } from 'vue'
 import BuzzFactorDialogContainer from './components/BuzzFactorDialogContainer.vue'
 import PCRDialogContainer from './components/PCRDialogContainer.vue'
+import PCRModal from './components/PCRModal.vue'
 import { useDevice } from './composables/use-device.composable'
 import { isIOS, removeSearchInputFocus } from './composables/use-ios-utils-composable'
 import currencies from './i18n/currencies'
@@ -59,6 +65,7 @@ export default defineComponent({
     ExperienceControls,
     BuzzFactorDialogContainer,
     PCRDialogContainer,
+    PCRModal,
     MainModal: defineAsyncComponent(() =>
       import('./components/custom-main-modal.vue').then(m => m.default),
     ),
@@ -74,14 +81,31 @@ export default defineComponent({
     const isOpen = ref(false)
     const buzzFactorDialog = ref()
     const pcrDialog = ref()
+    const isPCROpen = ref(false)
 
     // Provide the dialog container methods to child components
     provide('buzzFactorDialogContainer', {
       openDialog: () => {
+        isOpen.value = true
         buzzFactorDialog.value?.openDialog()
       },
       closeDialog: () => {
+        isOpen.value = false
         buzzFactorDialog.value?.closeDialog()
+      },
+    })
+
+    // Provide the PCR dialog container methods to child components
+    provide('pcrDialogContainer', {
+      openDialog: () => {
+        isPCROpen.value = true
+        nextTick(() => {
+          pcrDialog.value?.openDialog()
+        })
+      },
+      closeDialog: () => {
+        isPCROpen.value = false
+        pcrDialog.value?.closeDialog()
       },
     })
 
@@ -247,6 +271,7 @@ export default defineComponent({
 
     return {
       isOpen,
+      isPCROpen,
       documentDirection,
       buzzFactorDialog,
       pcrDialog,

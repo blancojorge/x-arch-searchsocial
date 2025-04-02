@@ -1,10 +1,14 @@
 <template>
   <div v-show="isOpen" class="pcr-dialog-container">
-    <div class="dialog-overlay" @click="closeDialog"></div>
+    <button
+      class="close-button"
+      @click.stop.prevent="handleClose"
+      @mousedown.stop.prevent
+      @touchstart.stop.prevent
+    >
+      <span class="material-icons">close</span>
+    </button>
     <div class="dialog-content">
-      <button class="close-button" @click="closeDialog">
-        <span class="material-icons">close</span>
-      </button>
       <PCRDialog />
     </div>
   </div>
@@ -19,9 +23,15 @@ export default defineComponent({
   components: {
     PCRDialog,
   },
+  props: {
+    close: {
+      type: Function,
+      required: true,
+    },
+  },
   // Explicitly expose methods for parent components
   expose: ['openDialog', 'closeDialog'],
-  setup() {
+  setup(props) {
     const isOpen = ref(false)
 
     const openDialog = () => {
@@ -32,11 +42,17 @@ export default defineComponent({
       isOpen.value = false
     }
 
+    const handleClose = () => {
+      closeDialog()
+      props.close()
+    }
+
     // Expose methods to parent components
     return {
       isOpen,
       openDialog,
       closeDialog,
+      handleClose,
     }
   },
 })
@@ -44,37 +60,20 @@ export default defineComponent({
 
 <style scoped>
 .pcr-dialog-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 9999;
+  position: relative;
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.dialog-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: -1;
+  z-index: 1002;
 }
 
 .dialog-content {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  max-width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
   position: relative;
-  width: 500px;
-  z-index: 1;
+  width: 100%;
+  height: 100%;
+  z-index: 1002;
 }
 
 .close-button {
@@ -91,6 +90,7 @@ export default defineComponent({
   justify-content: center;
   border-radius: 50%;
   transition: background-color 0.2s;
+  z-index: 1003;
 }
 
 .close-button:hover {
