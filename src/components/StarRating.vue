@@ -3,10 +3,7 @@
     class="x-rounded x-group x-relative x-flex x-items-center x-p-0"
     :style="{ backgroundColor: '#ffffff' }"
   >
-    <div
-      class="x-ml-[-5px] x-block x-flex x-flex-shrink-0 x-cursor-pointer x-items-center"
-      @click="showTooltip = !showTooltip"
-    >
+    <div class="x-ml-[-5px] x-block x-flex x-flex-shrink-0 x-cursor-pointer x-items-center">
       <!-- Star rating -->
       <div class="x-flex x-items-center">
         <svg
