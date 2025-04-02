@@ -1,32 +1,47 @@
 <template>
   <div class="pcr-dialog">
-    <h2>Purchase Confidence Rating</h2>
-    <div class="pcr-content">
-      <div class="pcr-description">
+    <div class="dialog-header">
+      <h2>What is<br />Purchase Confidence Rating?</h2>
+    </div>
+    <div class="dialog-body">
+      <div class="info-section">
+        <div class="icon-section">
+          <div class="pulse-icon">
+            <span class="material-symbols-outlined">diamond</span>
+          </div>
+        </div>
         <p>
-          The Purchase Confidence Rating (PCR) is a measure of how likely a product is to be
-          purchased based on various factors including:
+          These are our most consistently satisfying products across the entire store. The ones our
+          community buys the most.
         </p>
-        <ul>
-          <li>Product rating</li>
-          <li>Price competitiveness</li>
-          <li>Brand reputation</li>
-          <li>Customer reviews</li>
-        </ul>
       </div>
-      <div class="pcr-tags">
-        <div class="tag high">
-          <span class="material-icons">trending_up</span>
-          <span class="tag-text">High Confidence</span>
+
+      <div class="tag-types">
+        <div class="tag-type">
+          <div class="tag hype">Bestseller</div>
+          <p>Our most consistently satisfying products across the entire store</p>
         </div>
-        <div class="tag medium">
-          <span class="material-icons">trending_flat</span>
-          <span class="tag-text">Medium Confidence</span>
+        <div class="tag-type">
+          <div class="tag hype">Sales hit</div>
+          <p>Top performer specifically for what you're searching for</p>
         </div>
-        <div class="tag low">
-          <span class="material-icons">trending_down</span>
-          <span class="tag-text">Low Confidence</span>
+        <div class="tag-type">
+          <div class="tag hype">Trusted Pick</div>
+          <p>Proven reliability champion in this product category</p>
         </div>
+      </div>
+
+      <div class="info-footer">
+        <p>
+          These rates are updated in a daily basis based on customer shopping trends.
+          <br />
+          <a
+            class="info-footer-link underline"
+            href="https://empathy.co/blog/buzz-factor"
+            target="_blank"
+            >Learn more about Purchase Confidence Rating</a
+          >
+        </p>
       </div>
     </div>
   </div>
@@ -42,70 +57,133 @@ export default defineComponent({
 
 <style scoped>
 .pcr-dialog {
-  padding: 20px;
+  width: 100%;
 }
 
-h2 {
-  margin: 0 0 20px 0;
+.dialog-header {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.dialog-header h2 {
+  font-size: 1.75rem;
   color: #333;
-  font-size: 24px;
+  margin: 0;
 }
 
-.pcr-content {
+.dialog-body {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 2rem;
 }
 
-.pcr-description {
+.info-section {
+  text-align: center;
+  margin-bottom: 0.3rem;
+}
+
+.icon-section {
+  margin-bottom: 1.5rem;
+}
+
+.pulse-icon {
+  width: 64px;
+  height: 64px;
+  background: #f9c424;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(250, 193, 21, 0.672);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 238, 161, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(230, 57, 70, 0);
+  }
+}
+
+.pulse-icon .material-icons {
+  font-size: 32px;
+}
+
+.info-section h3 {
+  font-size: 1.25rem;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.info-section p {
   color: #666;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
-.pcr-description ul {
-  margin: 10px 0;
-  padding-left: 20px;
+.tag-types {
+  display: grid;
+  gap: 1.5rem;
+  margin: 0.5rem auto;
+  text-align: center;
 }
 
-.pcr-description li {
-  margin: 5px 0;
-}
-
-.pcr-tags {
+.tag-type {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 0.5rem;
 }
 
 .tag {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px;
+  padding: 6px 12px;
   border-radius: 4px;
-  background-color: #f5f5f5;
+  font-size: 0.875rem;
+  font-weight: bold;
+  color: white;
+  width: fit-content;
+  margin: 0 auto;
 }
 
-.tag .material-icons {
-  font-size: 24px;
+.trending {
+  background-color: #e63946;
 }
 
-.tag-text {
-  font-weight: 500;
+.tag-type p {
+  color: #666;
+  font-size: 0.875rem;
+  margin: 0;
 }
 
-.tag.high {
-  background-color: #e8f5e9;
-  color: #2e7d32;
+.hype {
+  background-color: #ffffff;
+  color: #000000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  max-width: calc(100% - 20px);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
-.tag.medium {
-  background-color: #fff3e0;
-  color: #ef6c00;
+.info-footer {
+  text-align: center;
+  color: #666;
+  font-size: 0.875rem;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
 }
 
-.tag.low {
-  background-color: #ffebee;
-  color: #c62828;
+@media (max-width: 640px) {
+  .dialog-header h2 {
+    font-size: 1.5rem;
+  }
+}
+.material-symbols-outlined {
+  font-size: 2rem;
 }
 </style>

@@ -66,7 +66,6 @@ export default defineComponent({
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1002;
 }
 
 .dialog-content {

@@ -52,7 +52,7 @@ export default defineComponent({
 }
 
 .pcr-modal__content {
-  background: white;
+  background: rgb(249, 249, 249);
   border-radius: 8px;
   padding: 20px;
   max-width: 90%;

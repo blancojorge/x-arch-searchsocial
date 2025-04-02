@@ -33,7 +33,8 @@
 
       <div class="info-footer">
         <p>
-          These factors are updated in a daily basis based customer interaction and shopping trends.
+          These factors are updated in a daily basis based on customer interaction and shopping
+          trends.
           <br />
           <a
             class="info-footer-link underline"
@@ -96,6 +97,19 @@ export default defineComponent({
   align-items: center;
   justify-content: center;
   color: white;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 1, 1, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(230, 43, 58, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(230, 57, 70, 0);
+  }
 }
 
 .pulse-icon .material-icons {

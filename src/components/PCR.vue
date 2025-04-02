@@ -121,7 +121,8 @@ export default defineComponent({
   justify-content: center;
   color: rgb(0, 0, 0);
   animation: pulse 2s infinite;
-  margin-left: 0.5 rem;
+  padding-left: 0.7rem;
+  padding-right: 0.3rem;
 }
 
 @keyframes pulse {

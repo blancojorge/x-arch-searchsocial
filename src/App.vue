@@ -55,6 +55,13 @@ materialIconsLink.rel = 'stylesheet'
 materialIconsLink.href = 'https://fonts.googleapis.com/icon?family=Material+Icons'
 document.head.appendChild(materialIconsLink)
 
+// Add Material Symbols Outlined font
+const materialSymbolsLink = document.createElement('link')
+materialSymbolsLink.rel = 'stylesheet'
+materialSymbolsLink.href =
+  'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200'
+document.head.appendChild(materialSymbolsLink)
+
 export default defineComponent({
   name: 'App',
   components: {
