@@ -32,6 +32,7 @@ interface EmpathyDemoPlatformResult extends PlatformResult {
   collection: string
   brand: string
   rating?: number
+  categories: string[]
 }
 
 declare module '@empathyco/x-types' {
@@ -40,6 +41,7 @@ declare module '@empathyco/x-types' {
     description: string
     brand: string
     rating?: ResultRating
+    categories?: string[]
   }
 }
 
@@ -60,6 +62,7 @@ resultSchema.$override<EmpathyDemoPlatformResult, Partial<Result>>({
     }
     return undefined
   },
+  categories: 'categories',
 })
 
 // Disable features by creating empty endpoint adapters

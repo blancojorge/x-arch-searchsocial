@@ -109,7 +109,7 @@ export default defineComponent({
 }
 
 .pcr-tag--low {
-  background-color: #53b9c9;
+  background-color: #ffffff;
 }
 
 .pulse-icon {

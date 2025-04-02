@@ -39,8 +39,8 @@ function saveTag(
       timestamp: Date.now(),
     }
     localStorage.setItem(key, JSON.stringify(storage))
-  } catch (error) {
-    console.error('Error saving buzz factor tag:', error)
+  } catch {
+    // Error handling without logging
   }
 }
 
@@ -49,8 +49,7 @@ function getTag(productId: string, type: 'query' | 'general' | 'category'): Stor
     const key = STORAGE_KEYS[type]
     const storage = JSON.parse(localStorage.getItem(key) || '{}') as TagStorage
     return storage[productId] || null
-  } catch (error) {
-    console.error('Error getting buzz factor tag:', error)
+  } catch {
     return null
   }
 }
@@ -87,24 +86,13 @@ function getCategoriesFromResults(results: Result[]): string[] {
 
   results.forEach(result => {
     if (result.categories && Array.isArray(result.categories)) {
-      result.categories.forEach(categoryArray => {
-        if (Array.isArray(categoryArray) && categoryArray.length > 0) {
-          if (typeof categoryArray[0] === 'string' && categoryArray[0] !== 'Default') {
-            allCategories.push(categoryArray[0])
-          }
-        } else if (typeof categoryArray === 'string' && categoryArray !== 'Default') {
-          allCategories.push(categoryArray)
+      result.categories.forEach(category => {
+        if (typeof category === 'string' && category !== 'Default') {
+          allCategories.push(category)
         }
       })
     }
   })
-
-  if (allCategories.length === 0) {
-    const collections = Array.from(
-      new Set(results.map(result => result.collection).filter(Boolean)),
-    )
-    allCategories.push(...collections)
-  }
 
   return Array.from(new Set(allCategories))
 }
@@ -140,13 +128,13 @@ function applyTagToResult(
       break
     case 'category':
       if (categories.length > 0) {
-        // Filter out categories with years
-        const validCategories = categories.filter(category => !category.match(/\d{4}/))
-        if (validCategories.length > 0) {
-          const category = validCategories[Math.floor(Math.random() * validCategories.length)]
-          result.buzzFactorTag = `Popular in "${category}"`
-          saveTag(productId, `Popular in "${category}"`, 'category')
-        }
+        const category = categories[Math.floor(Math.random() * categories.length)]
+        result.buzzFactorTag = `Popular in "${category}"`
+        saveTag(productId, `Popular in "${category}"`, 'category')
+      } else {
+        // Fallback to general tag if no categories available
+        result.buzzFactorTag = 'Trending now'
+        saveTag(productId, 'Trending now', 'general')
       }
       break
     case 'general':
